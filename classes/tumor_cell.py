@@ -10,15 +10,15 @@ class TumorCell(Agent):
         super().__init__()
         self.state = 'proliferating'
         self.age = 0
-        self.health = 1
         self.app = 0.1
-        self.api = 0.1
+        self.api = -0.02
         self.bii = 0.1
-        self.bip = 0.1
+        self.bip = 0.02
         self.ECM = 1
         self.theta_i = 1
         self.theta_p = 1
-        self.nutrient_threshold = 1
+        self.nutrient_threshold = 0.02
+        self.chance_of_randomly_dying = 0.01
 
     def step(self):
         '''
@@ -42,12 +42,12 @@ class TumorCell(Agent):
         probability_of_necrotic = self.probability_necrotic()/3
         probability_do_nothing = 1 - probability_of_proliferate - probability_of_invasion - probability_of_necrotic
 
-        ranodm_value = np.random(seed = 1)
-        if ranodm_value < probability_of_proliferate:
+        random_value = np.random(seed = 1)
+        if random_value < probability_of_proliferate:
             self.state = 'proliferating'
-        elif ranodm_value < probability_of_proliferate + probability_of_invasion:
+        elif random_value < probability_of_proliferate + probability_of_invasion:
             self.state = 'migrating'
-        elif ranodm_value < probability_of_proliferate + probability_of_invasion + probability_of_necrotic:
+        elif random_value < probability_of_proliferate + probability_of_invasion + probability_of_necrotic:
             self.state = 'necrotic'
         else:
             self.state = 'stationary'
@@ -104,7 +104,7 @@ class TumorCell(Agent):
         '''
         This method should return the probability of the tumor cell to become necrotic.
         '''
-        pass
+        return self.chance_of_randomly_dying
     
     def invade(self, open_cell):
         '''
