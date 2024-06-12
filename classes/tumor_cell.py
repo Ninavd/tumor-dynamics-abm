@@ -4,11 +4,12 @@ from math import e
 
 class TumorCell(Agent):
     '''
-    This class is for the use of agent Tumor cell
+    This class is for the use of agent Tumor cell. 
+    input: state (str) - the state of the tumor cell. Options are: proliferating, migrating, necrotic, stationary.
     '''
-    def __init__(self):
+    def __init__(self, state):
         super().__init__()
-        self.state = 'proliferating'
+        self.state = state
         self.age = 0
         self.app = 0.1
         self.api = -0.02

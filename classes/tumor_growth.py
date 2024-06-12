@@ -6,6 +6,7 @@ from mesa.datacollection import DataCollector
 from mesa.time import RandomActivation
 import numpy as np
 from math import e
+from classes.tumor_cell import TumorCell
 
 class TumorGrowth(Model):
     '''
@@ -32,7 +33,9 @@ class TumorGrowth(Model):
 
         self.init_grid()
 
-        # TODO: place single proliferative cell in the center
+        # Place single proliferative cell in the center
+        tumorcell = TumorCell('proliferating')
+        self.grid.place_agent(tumorcell, (self.center, self.center))
 
     def init_grid(self):
         '''
@@ -76,7 +79,7 @@ class TumorGrowth(Model):
 
     def diffusion_equation(self, N_t, x, y):
         # This equation breaks if you don't update after each grid visited and if you dont move from x,y = 0,0 to x,y max (when quation about this ask thomas or kattelijn)
-        part1 = (1 - self.k * N_t * self.tau - 2 * self.lam) / (1 + 2* self.lam) * self.nutrient_layer.data[x, y]
+        part1 = (1 - self.k * N_t * self.tau - 2 * self.lam) / (1 + 2 * self.lam) * self.nutrient_layer.data[x, y]
         part2 = self.lam / (1 + 2 * self.lam)
         part3 = self.nutrient_layer.data[x + 1, y] + self.nutrient_layer.data[x, y + 1] + self.nutrient_layer.data[x - 1, y] + self.nutrient_layer.data[x, y - 1]
         return part1 + part2*part3
