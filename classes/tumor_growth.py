@@ -76,15 +76,11 @@ class TumorGrowth(Model):
 
     def diffusion_equation(self, N_t, x, y):
         # This equation breaks if you don't update after each grid visited and if you dont move from x,y = 0,0 to x,y max (when quation about this ask thomas or kattelijn)
-        u_next_step = (
-            ((1 + self.k * N_t * self.tau - 2 * self.lam) / 1 + 2* self.lam) \
-            * self.nutrient_layer.data[x, y] \
-            + self.lam / (1 + 2 * self.lam) * 
-            (self.nutrient_layer.data[x + 1, y] + self.nutrient_layer.data[x, y + 1] \
-            + self.nutrient_layer.data[x - 1, y] + self.nutrient_layer.data[x, y - 1])
-        )
-        
-        return u_next_step
+        part1 = (1 + self.k * N_t * self.tau - 2 * self.lam) / (1 + 2* self.lam) * self.nutrient_layer.data[x, y]
+        part2 = self.lam / (1 + 2 * self.lam)
+
+        part3 = self.nutrient_layer.data[x + 1, y] + self.nutrient_layer.data[x, y + 1] + self.nutrient_layer.data[x - 1, y] + self.nutrient_layer.data[x, y - 1]
+        return part1 + part2*part3
 
     def step(self):
         # degradation ecm
