@@ -6,17 +6,14 @@ def main():
     model = TumorGrowth()
     model.degredation()
 
-    plt.imshow(model.ecm_layer.data)
-    plt.title('ECM field')
-    plt.colorbar()
-    plt.show()
+    # model.show_ecm()
 
     for i in range(100):
         model.diffusion()
 
-    plt.imshow(model.nutrient_layer.data)
-    plt.title('Nutrient field')
-    plt.colorbar()
-    plt.show()
+    # model.show_nutrients()
 
-main()
+    model.show_tumor()
+
+if __name__ == "__main__":
+    main()

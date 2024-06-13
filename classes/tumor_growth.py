@@ -6,6 +6,7 @@ from mesa.datacollection import DataCollector
 from mesa.time import RandomActivation
 import numpy as np
 from math import e
+import matplotlib.pyplot as plt
 from classes.tumor_cell import TumorCell
 
 class TumorGrowth(Model):
@@ -35,8 +36,14 @@ class TumorGrowth(Model):
         self.init_grid()
 
         # Place single proliferative cell in the center
-        tumorcell = TumorCell('proliferating')
+        tumorcell = TumorCell('proliferating', 0, self)
         self.grid.place_agent(tumorcell, (self.center, self.center))
+        
+        # print(self.grid._empty_mask[self.grid._empty_mask == False])
+        # print(sorted(self.grid.empties))
+        # print(type(self.grid.empties))
+        # print(self.get_agents_of_type(TumorCell))
+
 
     def init_grid(self):
         '''
@@ -86,22 +93,30 @@ class TumorGrowth(Model):
         return part1 + part2*part3
     
     def cell_death(self):
-        cell_with_agents = self.grid.select_cells(lambda data: data != 0)
-
-        for x, y in cell_with_agents:
+        cell_with_agents = self.grid.select_cells(not self.grid.exists_empty_cells()) #Filter for non-empty gridpoints with non-necrotic cells
+        non_necrotic_cells = self.grid.select_cells([agent for agent in self.grid.get_cell_list_contents(cell_with_agents) if agent.state != 'necrotic'])
+        for x, y in set(non_necrotic_cells):
             phi = self.nutrient_layer.data[x, y]
             if self.phi_c > phi:
                 for agent in self.grid.get_cell_list_contents(x,y):
                     agent.die()
 
     def new_state(self):
-        cell_with_agents = self.grid.select_cells(lambda data: data != 0)
-
+        cell_with_agents = self.grid.select_cells(lambda data: data != 0) 
+        #if cell_death works implement those selection methods in this function as well
+        
         for x, y in cell_with_agents:
             phi = self.nutrient_layer.data[x, y]
-            
-    
+            for agent in self.grid.get_cell_list_contents(x,y):
+                agent.generate_next_state(phi)
+             
     def cell_step(self):
+        cell_with_agents = self.grid.select_cells(lambda data: data != 0) 
+        #if cell_death works implement those selection methods in this function as well
+
+        for x, y in cell_with_agents:
+            for agent in self.grid.get_cell_list_contents(x,y):
+                agent.step(self.ecm_layer, self.nutrient_layer)
 
 
     def step(self):
@@ -115,4 +130,39 @@ class TumorGrowth(Model):
         self.new_state(self)
         # update cell distribution
         self.cell_step(self)
+
+    def run_simulation(self):
+        for i in range(200):
+            for l in range(self.width-1):
+                if len(self.grid.get_cell_list_contents([l,0])) > 0:
+                    return
+                elif len(self.grid.get_cell_list_contents([0,l])) > 0:
+                    return
+                elif len(self.grid.get_cell_list_contents([l,self.width-1])) > 0:
+                    return
+                elif len(self.grid.get_cell_list_contents([self.width-1,l])) > 0:
+                    return
+                else:
+                    self.step()
+            
+    
+    def show_ecm(self):
+        plt.imshow(self.ecm_layer.data)
+        plt.title('ECM field')
+        plt.colorbar()
+        plt.show()
+
+    def show_nutrients(self):
+        plt.imshow(self.nutrient_layer.data)
+        plt.title('Nutrient field')
+        plt.colorbar()
+        plt.show()
+    
+    def show_tumor(self):
+        # print(dir(self))
         
+        # plt.imshow(self.grid.empty_mask)
+        print(self.filled_mask)
+        plt.imshow(self.filled_mask)
+        plt.colorbar()
+        plt.show()
