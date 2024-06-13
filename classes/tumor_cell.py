@@ -10,6 +10,7 @@ class TumorCell(Agent):
     def __init__(self, state):
         super().__init__()
         self.state = state
+        self.next_state = state
         self.age = 0
         self.app = 0.1
         self.api = -0.02
@@ -21,7 +22,7 @@ class TumorCell(Agent):
         self.nutrient_threshold = 0.02
         self.chance_of_randomly_dying = 0.01
 
-    def step(self):
+    def generate_next_state(self):
         '''
         This method should implement the next step and determine if the tumor cell will migrate or proliferate (or changes to necrotic state).
         '''
@@ -39,19 +40,20 @@ class TumorCell(Agent):
         if (self.nutrient_threshold > self.model.nutrient_layer[self.pos]):
             self.state = 'necrotic'
         probability_of_proliferate = self.probability_proliferate()/3
-        probability_of_invasion = self.probability_invasion()/3
-        probability_of_necrotic = self.probability_necrotic()/3
+        probability_of_invasion = self.probability_invasion()/3 
+        probability_of_necrotic = self.probability_necrotic()/3 #Necrotic state is achieved when threshold of nutrients phi_c is not surpassed, right?
+        # normilization should be done with the sum of all probabilities not the amount of propbabilities
         probability_do_nothing = 1 - probability_of_proliferate - probability_of_invasion - probability_of_necrotic
 
         random_value = np.random(seed = 1)
         if random_value < probability_of_proliferate:
-            self.state = 'proliferating'
+            self.next_state = 'proliferating'
         elif random_value < probability_of_proliferate + probability_of_invasion:
-            self.state = 'migrating'
+            self.next_state = 'migrating'
         elif random_value < probability_of_proliferate + probability_of_invasion + probability_of_necrotic:
-            self.state = 'necrotic'
+            self.next_state = 'necrotic'
         else:
-            self.state = 'stationary'
+            self.next_state = 'stationary'
 
         if self.state == 'proliferating':
             # open_cell refers to the chosen cell which has a ECM of 0 and is open to migrate or prolifarate to.
@@ -90,7 +92,7 @@ class TumorCell(Agent):
         cell_contents = self.model.grid.get_cell_list_contents(self.pos)
         cell_contents.remove(self)
         N_T = len(cell_contents)
-        left = (1 - e^(-(self.ECM/(N_T * self.theta_p))**2)) 
+        left = e^(-(self.ECM/(N_T * self.theta_p))**2)
 
         
         right = 1
@@ -106,6 +108,11 @@ class TumorCell(Agent):
         This method should return the probability of the tumor cell to become necrotic.
         '''
         return self.chance_of_randomly_dying
+    
+    def step():
+        self.state = self.next_state
+        if self.state == 'invade':
+            self.invade()
     
     def invade(self, open_cell):
         '''

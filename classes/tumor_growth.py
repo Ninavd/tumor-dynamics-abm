@@ -30,6 +30,7 @@ class TumorGrowth(Model):
         self.D = 1*10**-4
         self.h = 0.1
         self.lam = self.D * self.tau / (self.h**2)
+        self.phi_c = 0.02
 
         self.init_grid()
 
@@ -83,6 +84,21 @@ class TumorGrowth(Model):
         part2 = self.lam / (1 + 2 * self.lam)
         part3 = self.nutrient_layer.data[x + 1, y] + self.nutrient_layer.data[x, y + 1] + self.nutrient_layer.data[x - 1, y] + self.nutrient_layer.data[x, y - 1]
         return part1 + part2*part3
+    
+    def cell_death(self):
+        cell_with_agents = self.grid.select_cells(lambda data: data != 0)
+
+        for x, y in cell_with_agents:
+            phi = self.nutrient_layer.data[x, y]
+            if self.phi_c > phi:
+                for agent in self.grid.get_cell_list_contents(x,y):
+                    agent.die()
+
+    def new_state(self):
+        
+    
+    def cell_step(self):
+
 
     def step(self):
         # degradation ecm
@@ -90,7 +106,9 @@ class TumorGrowth(Model):
         # nutrient diffusion step
         self.diffusion(self)
         # determine cell death
-
+        self.cell_death(self)
         # determine cell proliferation or migration
+        self.new_state(self)
         # update cell distribution
-        pass
+        self.cell_step(self)
+        
