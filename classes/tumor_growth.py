@@ -21,9 +21,10 @@ class TumorGrowth(Model):
         self.width = width
 
         self.center = int((height - 1) /2)
-        self.grid = MultiGrid(self.height, self.width, torus=False)
+
         self.ecm_layer = PropertyLayer("ECM", self.height, self.width, default_value=np.float64(0.0))
         self.nutrient_layer = PropertyLayer("Nutrients", self.height, self.width, default_value=np.float64(1.0))
+        self.grid = MultiGrid(self.height, self.width, torus=False, property_layers=[self.ecm_layer, self.nutrient_layer])
 
         self.k = 0.02
         self.tau = 1
@@ -93,58 +94,74 @@ class TumorGrowth(Model):
         return part1 + part2*part3
     
     def cell_death(self):
-        cell_with_agents = self.grid.select_cells(not self.grid.exists_empty_cells()) #Filter for non-empty gridpoints with non-necrotic cells
-        non_necrotic_cells = self.grid.select_cells([agent for agent in self.grid.get_cell_list_contents(cell_with_agents) if agent.state != 'necrotic'])
-        for x, y in set(non_necrotic_cells):
+        # cell_with_agents = self.grid.select_cells(self.grid.is_cell_empty()) #Filter for non-empty gridpoints with non-necrotic cells
+        # non_necrotic_cells = self.grid.select_cells([agent for agent in self.grid.get_cell_list_contents(cell_with_agents) if agent.state != 'necrotic'])
+        all_cells = self.grid.select_cells({'ECM':lambda ecm: True})
+        for x, y in all_cells:
             phi = self.nutrient_layer.data[x, y]
             if self.phi_c > phi:
-                for agent in self.grid.get_cell_list_contents(x,y):
+                for agent in self.grid.get_cell_list_contents([x, y]):
                     agent.die()
 
     def new_state(self):
-        cell_with_agents = self.grid.select_cells(lambda data: data != 0) 
-        #if cell_death works implement those selection methods in this function as well
+        # cell_with_agents = self.grid.select_cells(lambda data: data != 0) 
         
-        for x, y in cell_with_agents:
+        #if cell_death works implement those selection methods in this function as well
+        for agents, coord in self.grid.coord_iter():
+            x, y = coord
             phi = self.nutrient_layer.data[x, y]
-            for agent in self.grid.get_cell_list_contents(x,y):
+            for agent in agents: #self.grid.get_cell_list_contents([x,y]):
                 agent.generate_next_state(phi)
              
     def cell_step(self):
-        cell_with_agents = self.grid.select_cells(lambda data: data != 0) 
+        # cell_with_agents = self.grid.select_cells(lambda data: data != 0) 
         #if cell_death works implement those selection methods in this function as well
-
-        for x, y in cell_with_agents:
-            for agent in self.grid.get_cell_list_contents(x,y):
+        total = 0
+        for agents, _ in self.grid.coord_iter():
+            total += len(list(agents))
+            # print(len(agents))
+            for agent in agents: #self.grid.get_cell_list_contents([x,y]):
+                # print(agent)
                 agent.step(self.ecm_layer, self.nutrient_layer)
+        print('total agents: ', total)
 
 
     def step(self):
         # degradation ecm
-        self.degredation(self)
+        print("Degredation")
+        self.degredation()
         # nutrient diffusion step
-        self.diffusion(self)
+        print("Diffusion")
+        self.diffusion()
         # determine cell death
-        self.cell_death(self)
+        print("Cell death")
+        self.cell_death()
         # determine cell proliferation or migration
-        self.new_state(self)
+        print("New state")
+        self.new_state()
         # update cell distribution
-        self.cell_step(self)
+        print("Cell step")
+        self.cell_step()
 
     def run_simulation(self):
-        for i in range(200):
-            for l in range(self.width-1):
-                if len(self.grid.get_cell_list_contents([l,0])) > 0:
-                    return
-                elif len(self.grid.get_cell_list_contents([0,l])) > 0:
-                    return
-                elif len(self.grid.get_cell_list_contents([l,self.width-1])) > 0:
-                    return
-                elif len(self.grid.get_cell_list_contents([self.width-1,l])) > 0:
-                    return
-                else:
-                    self.step()
-            
+        for i in range(10):
+            if self.if_touch_border():
+                print("Tumor touches border")
+                return
+            print("simulation step: ", i) 
+            self.step()
+    
+    def if_touch_border(self):
+        for l in range(self.width-1):
+            if sum(self.grid.get_cell_list_contents([l, 0])) > 0:
+                return True
+            elif sum(self.grid.get_cell_list_contents([0,l])) > 0:
+                return True
+            elif sum(self.grid.get_cell_list_contents([l,self.width-1])) > 0:
+                return True
+            elif sum(self.grid.get_cell_list_contents([self.width-1,l])) > 0:
+                return True
+        return False
     
     def show_ecm(self):
         plt.imshow(self.ecm_layer.data)
@@ -160,9 +177,13 @@ class TumorGrowth(Model):
     
     def show_tumor(self):
         # print(dir(self))
+        empties = self.grid.empties
+
+
+        # plot different cell types w/ diff color?
         
         # plt.imshow(self.grid.empty_mask)
-        print(self.filled_mask)
-        plt.imshow(self.filled_mask)
+        # print(self.filled_mask)
+        # plt.imshow(self.filled_mask)
         plt.colorbar()
         plt.show()

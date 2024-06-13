@@ -4,16 +4,21 @@ import matplotlib.pyplot as plt
 
 def main():
     model = TumorGrowth()
-    model.degredation()
+    model.run_simulation()
+
+    # model.degredation()
 
     # model.show_ecm()
 
-    for i in range(100):
-        model.diffusion()
+    # for i in range(100):
+    #     model.diffusion()
 
     # model.show_nutrients()
 
-    model.show_tumor()
+    # model.show_tumor()
+
+    # model.cell_death()
+
 
 if __name__ == "__main__":
     main()
