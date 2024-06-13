@@ -95,7 +95,11 @@ class TumorGrowth(Model):
                     agent.die()
 
     def new_state(self):
-        
+        cell_with_agents = self.grid.select_cells(lambda data: data != 0)
+
+        for x, y in cell_with_agents:
+            phi = self.nutrient_layer.data[x, y]
+            
     
     def cell_step(self):
 
