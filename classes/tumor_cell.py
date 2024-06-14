@@ -85,13 +85,13 @@ class TumorCell(Agent):
     #     '''
     #     return self.chance_of_randomly_dying
     
-    def step(self, ecm_grid, nutrient_grid):
+    def step(self, ecm_grid, nutrient_grid, N_T_copy):
         #print(self.next_state)
         self.state = self.next_state
         if self.state == 'invasive':
-            self.invade(ecm_grid, nutrient_grid)
+            self.invade(ecm_grid, nutrient_grid, N_T_copy)
         elif self.state == 'proliferating':
-            self.proliferate(ecm_grid, nutrient_grid)
+            self.proliferate(ecm_grid, nutrient_grid, N_T_copy) 
         
         # if self.model.nutrient_layer.data[self.pos] < self.nutrient_threshold:
         #     self.next_state = 'necrotic'
@@ -110,11 +110,11 @@ class TumorCell(Agent):
         # elif random_value < P_p + P_i + P_d: #random chance of dying
         #     self.next_state = 'necrotic'
         
-    
-    def invade(self, ecm_grid, nutrient_grid):
+    def invade(self, ecm_grid, nutrient_grid, N_T_copy):
         '''
         This method should implement a migrating step.
         '''
+        # N_T_copy = copy.copy(self.N_T)
         neighbors = self.model.grid.get_neighborhood(self.pos, moore = True, include_center = False)
         list_of_0_ECM_neighbors = []
         for neighbor in neighbors:
@@ -126,6 +126,7 @@ class TumorCell(Agent):
         else:
             lowest_amount = 1000
             for ecm_0 in list_of_0_ECM_neighbors:
+                # amount_of_agents = N_T_copy[ecm_0]
                 amount_of_agents = len(self.model.grid.get_cell_list_contents(ecm_0))
                 if amount_of_agents < lowest_amount:
                     lowest_amount = amount_of_agents
@@ -134,12 +135,17 @@ class TumorCell(Agent):
                     if nutrient_grid.data[open_cell] < nutrient_grid.data[ecm_0]:
                         open_cell = ecm_0
                     elif nutrient_grid.data[open_cell] == nutrient_grid.data[ecm_0]:
-                        open_cell = np.random.choice(open_cell, ecm_0)
-        
-        self.model.grid.move_agent(self, pos = open_cell)
+                        open_cell = tuple(np.random.choice(open_cell, ecm_0))
+        # TODO: move cells simultaneously
+        try:
+            self.model.displace_agent(self, new_pos=open_cell)
+        except ValueError:
+            print(open_cell)
+            print(type(open_cell))
+            return
 
 
-    def proliferate(self, ecm_grid, nutrient_grid):
+    def proliferate(self, ecm_grid, nutrient_grid, N_T_copy):
         '''
         This method should implement a proliferation of the tumor cell.
         '''
@@ -153,6 +159,7 @@ class TumorCell(Agent):
         # for each cell with 0 ECM, check the amount of agents in the cell and choose the one with the lowest amount. If they are the same, then choose the one with the higher nutrient value.
         open_cell = self.pos
         for ecm_0 in list_of_0_ECM_cells:
+            # amount_of_agents = N_T_copy[ecm_0]
             amount_of_agents = len(self.model.grid.get_cell_list_contents(ecm_0))
             if amount_of_agents < lowest_amount:
                 lowest_amount = amount_of_agents

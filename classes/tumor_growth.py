@@ -53,16 +53,22 @@ class TumorGrowth(Model):
                 if x == 0 or x == self.width - 1 or y == 0 or y == self.height - 1:
                     self.nutrient_layer.set_cell((x,y), value=1)
                 else:
-                    self.nutrient_layer.set_cell((x,y), value=1) # Nutrient grid intialized as 1
+                    nutrient_value = random.uniform(0,1)
+                    self.nutrient_layer.set_cell((x,y), nutrient_value)
 
         # First tumor cell does not survive when nutrients are initialized like this
         # while self.nutrient_layer.data[self.center, self.center] == 0:
         #     self.diffusion()
 
     def add_agent(self, state, id, pos):
-        tumorcell = TumorCell('proliferating', 0, self)
+        tumorcell = TumorCell(state, id, self)
         self.grid.place_agent(tumorcell, pos)
         self.N_T[pos] += 1
+    
+    def displace_agent(self, agent: TumorCell, new_pos):
+        self.N_T[agent.pos] -= 1
+        self.grid.move_agent(agent, pos = new_pos)
+        self.N_T[new_pos] += 1
 
     def degredation(self):
         """
@@ -109,21 +115,23 @@ class TumorGrowth(Model):
         # cell_with_agents = self.grid.select_cells(lambda data: data != 0) 
         
         #if cell_death works implement those selection methods in this function as well
-        for agents, coord in self.grid.coord_iter():
+        iterator = self.grid.coord_iter()
+        for agents, coord in iterator:
             x, y = coord
             phi = self.nutrient_layer.data[x, y]
             for agent in agents: #self.grid.get_cell_list_contents([x,y]):
-                agent.generate_next_state(phi)
+                if agent.state != 'necrotic':
+                    agent.generate_next_state(phi)
              
     def cell_step(self):
         #if cell_death works implement those selection methods in this function as well 
         iterator = self.grid.coord_iter()
+        N_T_copy = copy.copy(self.N_T)
         for agents, _ in iterator:
             agents = copy.copy(agents)
             for agent in agents: 
-                agent.step(self.ecm_layer, self.nutrient_layer)
+                agent.step(self.ecm_layer, self.nutrient_layer, N_T_copy)
                 #print(self.N_T)
-
 
     def step(self):
         # degradation ecm
@@ -139,21 +147,23 @@ class TumorGrowth(Model):
 
     def run_simulation(self, steps=10):
         for i in range(steps):
+            # print(self.N_T)
             if self.if_touch_border():
                 print("Tumor touches border")
                 return
-            print(self.N_T)
             self.step()
+            
     
     def if_touch_border(self):
-        for l in range(self.width-1):
-            if sum(self.grid.get_cell_list_contents([l, 0])) > 0:
+        # NOTE: this assumes height = width
+        for l in range(self.height):
+            if len(self.grid.get_cell_list_contents([l, 0])) > 0:
                 return True
-            elif sum(self.grid.get_cell_list_contents([0,l])) > 0:
+            elif len(self.grid.get_cell_list_contents([0,l])) > 0:
                 return True
-            elif sum(self.grid.get_cell_list_contents([l,self.width-1])) > 0:
+            elif len(self.grid.get_cell_list_contents([l,self.width-1])) > 0:
                 return True
-            elif sum(self.grid.get_cell_list_contents([self.width-1,l])) > 0:
+            elif len(self.grid.get_cell_list_contents([self.width-1,l])) > 0:
                 return True
         return False
     
