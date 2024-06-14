@@ -99,11 +99,9 @@ class TumorGrowth(Model):
         part1 = (1 - self.k * N_t * self.tau - 2 * self.lam) / (1 + 2 * self.lam) * self.nutrient_layer.data[x, y]
         part2 = self.lam / (1 + 2 * self.lam)
         part3 = self.nutrient_layer.data[x + 1, y] + self.nutrient_layer.data[x, y + 1] + self.nutrient_layer.data[x - 1, y] + self.nutrient_layer.data[x, y - 1]
-        return part1 + part2*part3
+        return part1 + part2 * part3
     
     def cell_death(self):
-        # cell_with_agents = self.grid.select_cells(self.grid.is_cell_empty()) #Filter for non-empty gridpoints with non-necrotic cells
-        # non_necrotic_cells = self.grid.select_cells([agent for agent in self.grid.get_cell_list_contents(cell_with_agents) if agent.state != 'necrotic'])
         all_cells = self.grid.select_cells({'ECM':lambda ecm: True})
         for x, y in all_cells:
             phi = self.nutrient_layer.data[x, y]
@@ -112,26 +110,17 @@ class TumorGrowth(Model):
                     agent.die()
 
     def new_state(self):
-        # cell_with_agents = self.grid.select_cells(lambda data: data != 0) 
-        
-        #if cell_death works implement those selection methods in this function as well
-        iterator = self.grid.coord_iter()
-        for agents, coord in iterator:
-            x, y = coord
-            phi = self.nutrient_layer.data[x, y]
-            for agent in agents: #self.grid.get_cell_list_contents([x,y]):
-                if agent.state != 'necrotic':
-                    agent.generate_next_state(phi)
+        for agent in self.agents.shuffle():
+            phi = self.nutrient_layer.data[agent.pos]
+            if agent.state != 'necrotic':
+                agent.generate_next_state(phi)
              
     def cell_step(self):
-        #if cell_death works implement those selection methods in this function as well 
-        iterator = self.grid.coord_iter()
-        N_T_copy = copy.copy(self.N_T)
-        for agents, _ in iterator:
-            agents = copy.copy(agents)
-            for agent in agents: 
-                agent.step(self.ecm_layer, self.nutrient_layer, N_T_copy)
-                #print(self.N_T)
+        # update steps depend on CURRENT cell distribution
+        N_T_copy = copy.copy(self.N_T) 
+
+        for agent in self.agents.shuffle():
+            agent.step(self.ecm_layer, self.nutrient_layer, N_T_copy)
 
     def step(self):
         # degradation ecm
@@ -147,12 +136,13 @@ class TumorGrowth(Model):
 
     def run_simulation(self, steps=10):
         for i in range(steps):
-            # print(self.N_T)
+            print(f'Running... step: {i}/{steps}', end='\r')
+
             if self.if_touch_border():
-                print("Tumor touches border")
+                print("\n Simulation stopped: Tumor touches border")
                 return
-            self.step()
             
+            self.step()   
     
     def if_touch_border(self):
         # NOTE: this assumes height = width

@@ -3,8 +3,8 @@ from classes.tumor_cell import TumorCell
 import matplotlib.pyplot as plt
 
 def main():
-    model = TumorGrowth(101, 101)
-    model.run_simulation(steps=250)
+    model = TumorGrowth(51, 51)
+    model.run_simulation(steps=500)
 
     model.show_ecm()
     model.show_tumor()
