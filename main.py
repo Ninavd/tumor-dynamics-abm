@@ -6,9 +6,7 @@ def main():
     model = TumorGrowth(51, 51)
     model.run_simulation(steps=500)
 
-    model.show_ecm()
-    model.show_tumor()
-    model.show_nutrients()
+    model.plot_all()
 
     print(model.N_T[model.N_T > 0])
     plt.imshow(model.N_T)

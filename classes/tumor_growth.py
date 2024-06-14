@@ -157,20 +157,30 @@ class TumorGrowth(Model):
                 return True
         return False
     
-    def show_ecm(self):
-        plt.imshow(self.ecm_layer.data)
+    def show_ecm(self, show=True):
+        im = plt.imshow(self.ecm_layer.data)
         plt.title('ECM field')
-        plt.colorbar()
-        plt.show()
+        plt.colorbar(im, fraction=0.046, pad=0.04)
+        plt.show() if show else None
 
-    def show_nutrients(self):
-        plt.imshow(self.nutrient_layer.data)
+    def show_nutrients(self, show=True):
+        im = plt.imshow(self.nutrient_layer.data)
         plt.title('Nutrient field')
-        plt.colorbar()
-        plt.show()
+        plt.colorbar(im, fraction=0.046, pad=0.04)
+        plt.show() if show else None
     
-    def show_tumor(self):
+    def show_tumor(self, show=True):
         # plot different cell types w/ diff color?
-        plt.imshow(self.N_T > 0)
-        plt.colorbar()
+        im = plt.imshow(self.N_T > 0)
+        plt.colorbar(im, fraction=0.046, pad=0.04)
+        plt.title('Tumor')
+        plt.show() if show else None
+    
+    def plot_all(self):
+        plt.figure(figsize=(12, 5))
+        plot_funcs = [self.show_ecm, self.show_nutrients, self.show_tumor]
+        for i, plot in enumerate(plot_funcs):
+            plt.subplot(131+i)
+            plot(show=False)
+        plt.tight_layout()
         plt.show()
