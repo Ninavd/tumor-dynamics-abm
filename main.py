@@ -3,8 +3,11 @@ from classes.tumor_cell import TumorCell
 import matplotlib.pyplot as plt
 
 def main():
-    model = TumorGrowth()
-    model.run_simulation()
+    model = TumorGrowth(200, 200)
+    model.run_simulation(steps=350)
+
+    model.show_ecm()
+    model.show_tumor()
 
     # model.degredation()
 
@@ -13,7 +16,7 @@ def main():
     # for i in range(100):
     #     model.diffusion()
 
-    # model.show_nutrients()
+    model.show_nutrients()
 
     # model.show_tumor()
 

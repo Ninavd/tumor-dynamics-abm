@@ -1,4 +1,5 @@
 import random
+import copy 
 
 from mesa import Model
 from mesa.space import MultiGrid, PropertyLayer 
@@ -13,7 +14,7 @@ class TumorGrowth(Model):
     '''
     Tumor Growth Model
     '''
-    def __init__(self, height = 21, width = 21):
+    def __init__(self, height = 201, width = 201):
         # height and width still to be adjusted for now smaller values
         super().__init__()
 
@@ -26,6 +27,8 @@ class TumorGrowth(Model):
         self.nutrient_layer = PropertyLayer("Nutrients", self.height, self.width, default_value=np.float64(1.0))
         self.grid = MultiGrid(self.height, self.width, torus=False, property_layers=[self.ecm_layer, self.nutrient_layer])
 
+
+        self.N_T = np.zeros((self.height, self.width))
         self.k = 0.02
         self.tau = 1
         self.gamma = 5*10**-4
@@ -37,14 +40,7 @@ class TumorGrowth(Model):
         self.init_grid()
 
         # Place single proliferative cell in the center
-        tumorcell = TumorCell('proliferating', 0, self)
-        self.grid.place_agent(tumorcell, (self.center, self.center))
-        
-        # print(self.grid._empty_mask[self.grid._empty_mask == False])
-        # print(sorted(self.grid.empties))
-        # print(type(self.grid.empties))
-        # print(self.get_agents_of_type(TumorCell))
-
+        self.add_agent('proliferating', self.next_id(), (self.center, self.center))
 
     def init_grid(self):
         '''
@@ -57,10 +53,16 @@ class TumorGrowth(Model):
                 if x == 0 or x == self.width - 1 or y == 0 or y == self.height - 1:
                     self.nutrient_layer.set_cell((x,y), value=1)
                 else:
-                    self.nutrient_layer.set_cell((x,y), value=0)
+                    self.nutrient_layer.set_cell((x,y), value=1) # Nutrient grid intialized as 1
 
-        while self.nutrient_layer.data[self.center, self.center] == 0:
-            self.diffusion()
+        # First tumor cell does not survive when nutrients are initialized like this
+        # while self.nutrient_layer.data[self.center, self.center] == 0:
+        #     self.diffusion()
+
+    def add_agent(self, state, id, pos):
+        tumorcell = TumorCell('proliferating', 0, self)
+        self.grid.place_agent(tumorcell, pos)
+        self.N_T[pos] += 1
 
     def degredation(self):
         """
@@ -114,41 +116,33 @@ class TumorGrowth(Model):
                 agent.generate_next_state(phi)
              
     def cell_step(self):
-        # cell_with_agents = self.grid.select_cells(lambda data: data != 0) 
-        #if cell_death works implement those selection methods in this function as well
-        total = 0
-        for agents, _ in self.grid.coord_iter():
-            total += len(list(agents))
-            # print(len(agents))
-            for agent in agents: #self.grid.get_cell_list_contents([x,y]):
-                # print(agent)
+        #if cell_death works implement those selection methods in this function as well 
+        iterator = self.grid.coord_iter()
+        for agents, _ in iterator:
+            agents = copy.copy(agents)
+            for agent in agents: 
                 agent.step(self.ecm_layer, self.nutrient_layer)
-        print('total agents: ', total)
+                #print(self.N_T)
 
 
     def step(self):
         # degradation ecm
-        print("Degredation")
         self.degredation()
         # nutrient diffusion step
-        print("Diffusion")
         self.diffusion()
         # determine cell death
-        print("Cell death")
         self.cell_death()
         # determine cell proliferation or migration
-        print("New state")
         self.new_state()
         # update cell distribution
-        print("Cell step")
         self.cell_step()
 
-    def run_simulation(self):
-        for i in range(10):
+    def run_simulation(self, steps=10):
+        for i in range(steps):
             if self.if_touch_border():
                 print("Tumor touches border")
                 return
-            print("simulation step: ", i) 
+            print(self.N_T)
             self.step()
     
     def if_touch_border(self):
@@ -176,14 +170,7 @@ class TumorGrowth(Model):
         plt.show()
     
     def show_tumor(self):
-        # print(dir(self))
-        empties = self.grid.empties
-
-
         # plot different cell types w/ diff color?
-        
-        # plt.imshow(self.grid.empty_mask)
-        # print(self.filled_mask)
-        # plt.imshow(self.filled_mask)
+        plt.imshow(self.N_T > 0)
         plt.colorbar()
         plt.show()

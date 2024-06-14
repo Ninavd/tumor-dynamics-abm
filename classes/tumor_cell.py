@@ -10,15 +10,15 @@ class TumorCell(Agent):
     def __init__(self, state, unique_id, model):
         super().__init__(unique_id, model)
         self.state = state
-        self.next_state = state
+        self.next_state = self.state
         self.age = 0
         self.app = 0.1
         self.api = -0.02
         self.bii = 0.1
         self.bip = 0.02
         self.ECM = 1
-        self.theta_i = 1
-        self.theta_p = 1
+        self.theta_i = 0.2
+        self.theta_p = 0.2
         self.nutrient_threshold = 0.02
         self.chance_of_randomly_dying = 0 # change to > 0 if you want to implement random death of a cell
 
@@ -32,7 +32,7 @@ class TumorCell(Agent):
 
         if normalized_invasion < normalized_proliferate:
             if random_value < normalized_proliferate:
-                self.next_state = 'proliferate'
+                self.next_state = 'proliferating'
         else:
             if random_value < normalized_invasion:
                 self.next_state = 'invasive'
@@ -43,7 +43,7 @@ class TumorCell(Agent):
         '''
         N_T = 0
         cell_contents = self.model.grid.get_cell_list_contents(self.pos)
-        cell_contents.remove(self)
+        # cell_contents.remove(self)
         N_T = len(cell_contents)
         left = 1
         if (N_T * self.theta_p) != 0:
@@ -53,7 +53,7 @@ class TumorCell(Agent):
         for i in range(len(cell_contents)):
             if cell_contents[i].state == 'proliferating':
                 right *= 1 + self.app
-            if cell_contents[i].state == 'invasion':
+            if cell_contents[i].state == 'invasive':
                 right *= 1 + self.api
         return left * right
 
@@ -63,7 +63,7 @@ class TumorCell(Agent):
         '''
         N_T = 0
         cell_contents = self.model.grid.get_cell_list_contents(self.pos)
-        cell_contents.remove(self)
+        # cell_contents.remove(self)
         N_T = len(cell_contents)
         if (N_T * self.theta_p) == 0:
             left = 1
@@ -75,7 +75,7 @@ class TumorCell(Agent):
         for i in range(len(cell_contents)):
             if (cell_contents[i].state == 'proliferating'):
                 right *= 1 + self.bip
-            if (cell_contents[i].state == 'invasion'):
+            if (cell_contents[i].state == 'invasive'):
                 right *= 1 + self.bii
         return left * right
 
@@ -86,24 +86,29 @@ class TumorCell(Agent):
     #     return self.chance_of_randomly_dying
     
     def step(self, ecm_grid, nutrient_grid):
+        #print(self.next_state)
         self.state = self.next_state
-        if self.state == 'invasion':
+        if self.state == 'invasive':
             self.invade(ecm_grid, nutrient_grid)
-        elif self.state == 'proliferate':
+        elif self.state == 'proliferating':
             self.proliferate(ecm_grid, nutrient_grid)
         
-        if self.model.nutrient_layer.data[self.pos] < self.nutrient_threshold:
-            self.next_state = 'necrotic'
-        P_p = self.probability_proliferate(self.model.nutrient_layer.data[self.pos])
-        P_i = self.probability_invasion(self.model.nutrient_layer.data[self.pos])
-        P_p, P_i, P_d = self.normalize(P_p, P_i, self.chance_of_randomly_dying)
-        random_value = np.random.random()
-        if random_value < P_p:
-            self.next_state = 'proliferate'
-        elif random_value < P_p + P_i:
-            self.next_state = 'invasion'
-        elif random_value < P_p + P_i + P_d: #random chance of dying
-            self.next_state = 'necrotic'
+        # if self.model.nutrient_layer.data[self.pos] < self.nutrient_threshold:
+        #     self.next_state = 'necrotic'
+
+        # This process is already executed above and uses the function generate_next_state, which in turn is called in new_state in tumor_growth.py    
+        # P_p = self.probability_proliferate(self.model.nutrient_layer.data[self.pos])
+        # P_i = self.probability_invasion(self.model.nutrient_layer.data[self.pos])
+        # P_p, P_i, P_d = self.normalize(P_p, P_i, self.chance_of_randomly_dying)
+        # random_value = np.random.random()
+        # if random_value < P_p:
+        #     self.next_state = 'proliferate'
+        # elif random_value < P_p + P_i:
+        #     self.next_state = 'invasion'
+
+        # Dying of tumour cells doesn't happen due to a probability but due to the nutrient threshold     
+        # elif random_value < P_p + P_i + P_d: #random chance of dying
+        #     self.next_state = 'necrotic'
         
     
     def invade(self, ecm_grid, nutrient_grid):
@@ -126,9 +131,9 @@ class TumorCell(Agent):
                     lowest_amount = amount_of_agents
                     open_cell = ecm_0
                 elif amount_of_agents == lowest_amount:
-                    if nutrient_grid.data(open_cell) < nutrient_grid.data(ecm_0):
+                    if nutrient_grid.data[open_cell] < nutrient_grid.data[ecm_0]:
                         open_cell = ecm_0
-                    elif nutrient_grid.data(open_cell) == nutrient_grid.data(ecm_0):
+                    elif nutrient_grid.data[open_cell] == nutrient_grid.data[ecm_0]:
                         open_cell = np.random.choice(open_cell, ecm_0)
         
         self.model.grid.move_agent(self, pos = open_cell)
@@ -163,7 +168,7 @@ class TumorCell(Agent):
                 elif nutrient_grid.data[open_cell] == nutrient_grid.data[ecm_0]:
                     open_cell = np.random.choice(open_cell, ecm_0)
 
-        self.model.grid.place_agent(TumorCell('proliferate', np.random.randint(2000), self.model), open_cell) if open_cell else None # TODO: make unique id ! 
+        self.model.add_agent('proliferating', self.model.next_id(), open_cell) if open_cell else None # TODO: make unique id ! 
 
     def die(self):
         '''
@@ -172,12 +177,12 @@ class TumorCell(Agent):
         self.state = 'necrotic'
         # self.model.remove_agent()
     
-    def normalize(self, P, I, D=0):
-        '''
-        This method should normalize the probabilities of proliferating and invading and dying.
-        '''
-        P_p = P / (P + I+D)
-        P_i = I / (P + I+D)
-        P_d = D / (P + I + D)
+    # def normalize(self, P, I, D=0):
+    #     '''
+    #     This method should normalize the probabilities of proliferating and invading and dying.
+    #     '''
+    #     P_p = P / (P + I+D)
+    #     P_i = I / (P + I+D)
+    #     P_d = D / (P + I + D)
 
-        return P_p, P_i, P_d
+    #     return P_p, P_i, P_d
