@@ -224,8 +224,6 @@ class TumorGrowth(Model):
         """
         fig, axs = plt.subplots()
         im = axs.imshow(self.ecm_layers[position])
-        axs.set_title('ECM field')
-        plt.colorbar(im, ax=axs, fraction=0.046, pad=0.04)
         return fig, axs
 
     def show_nutrients(self, position = -1, show=True):
@@ -234,8 +232,6 @@ class TumorGrowth(Model):
         """
         fig, axs = plt.subplots()
         im = axs.imshow(self.nutrient_layers[position])
-        axs.set_title('Nutrient field')
-        plt.colorbar(im, ax=axs, fraction=0.046, pad=0.04)
         return fig, axs
     
     def show_tumor(self, position = -1, show=True):
@@ -244,8 +240,6 @@ class TumorGrowth(Model):
         """
         fig, axs = plt.subplots()
         im = axs.imshow(self.N_Ts[position])
-        axs.set_title('Tumor')
-        plt.colorbar(im, ax=axs, fraction=0.046, pad=0.04)
         return fig, axs
     
     def plot_all(self, position = -1):
@@ -258,19 +252,25 @@ class TumorGrowth(Model):
             positions = position
         
         for position in positions:
+            if (position > len(self.ecm_layers) - 1):
+                print(f"Position {position} out of range. Max position: {len(self.ecm_layers) - 1}, skipping graphic iteration...")
+                continue
             final_fig, final_axs = plt.subplots(1, 3, figsize=(15, 5))
 
             ecm_fig, ecm_axs = self.show_ecm(position = position)
             nutrient_fig, nutrient_axs = self.show_nutrients(position = position)
             tumor_fig, tumor_axs = self.show_tumor(position = position)
 
-            final_axs[0].imshow(ecm_axs.get_images()[0].get_array())
-            final_axs[0].set_title('ECM field')
-            final_axs[1].imshow(nutrient_axs.get_images()[0].get_array())
-            final_axs[1].set_title('Nutrient field')
-            final_axs[2].imshow(tumor_axs.get_images()[0].get_array())
-            final_axs[2].set_title('Tumor')
-            
+            ecm_axs = final_axs[0].imshow(ecm_axs.get_images()[0].get_array())
+            final_axs[0].axis("off")
+            final_axs[0].set_title('ECM Field Concentration')
+            nutrient_axs = final_axs[1].imshow(nutrient_axs.get_images()[0].get_array())
+            final_axs[1].set_title('Nutrient Field Concentration')
+            final_axs[1].axis("off")
+            tumor_axs = final_axs[2].imshow(tumor_axs.get_images()[0].get_array())
+            final_axs[2].set_title('Tumor Cell Count')
+            final_axs[2].axis("off")
+
             plt.close(ecm_fig)
             plt.close(nutrient_fig)
             plt.close(tumor_fig)
