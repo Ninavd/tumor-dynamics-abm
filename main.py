@@ -6,11 +6,11 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def main():
     model = TumorGrowth(51, 51, seed=143)
-    model.run_simulation(steps=500)
+    model.run_simulation(steps=250)
 
     model.plot_all(position=[0, 250, -1])
 
-    model.plot_NT()
+    # model.plot_NT()
 
 if __name__ == "__main__":
     main()

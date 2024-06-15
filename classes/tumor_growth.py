@@ -274,6 +274,10 @@ class TumorGrowth(Model):
             plt.close(ecm_fig)
             plt.close(nutrient_fig)
             plt.close(tumor_fig)
+            final_fig.colorbar(ecm_axs, ax=final_axs[0], fraction=0.046, pad=0.04)
+            final_fig.colorbar(nutrient_axs, ax=final_axs[1], fraction=0.046, pad=0.04)
+            final_fig.colorbar(tumor_axs, ax=final_axs[2], fraction=0.046, pad=0.04)
+            plt.suptitle(f'ECM, Nutrient, and Tumor Values at Iteration {position%(len(self.ecm_layers))} of {len(self.ecm_layers)-1} for a {self.height}x{self.width} Grid')
             plt.show()
 
     def plot_NT(self):
