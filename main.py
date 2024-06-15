@@ -1,6 +1,8 @@
 from classes.tumor_growth import TumorGrowth
 from classes.tumor_cell import TumorCell
 import matplotlib.pyplot as plt
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def main():
     model = TumorGrowth(51, 51)
