@@ -31,6 +31,7 @@ class TumorGrowth(Model):
         self.ecm_layers = []
         self.nutrient_layers = []
         self.N_Ts = []
+        self.deaths = []
 
         self.N_T = np.zeros((self.height, self.width))
         self.k = 0.02
@@ -40,6 +41,7 @@ class TumorGrowth(Model):
         self.h = 0.1
         self.lam = self.D * self.tau / (self.h**2)
         self.phi_c = 0.02
+        self.number_deaths = 0
 
         self.init_grid()
 
@@ -146,6 +148,7 @@ class TumorGrowth(Model):
             if self.phi_c > phi:
                 for agent in self.grid.get_cell_list_contents([x, y]):
                     agent.die() # NOTE: self.N_T is not updated! Might be better in the future...
+                    self.number_deaths += 1
 
     def new_state(self):
         """
@@ -217,6 +220,8 @@ class TumorGrowth(Model):
         self.ecm_layers.append(copy.deepcopy(self.ecm_layer.data))
         self.nutrient_layers.append(copy.deepcopy(self.nutrient_layer.data))
         self.N_Ts.append(copy.deepcopy(self.N_T))
+        self.deaths.append(copy.copy(self.number_deaths))
+        print(self.deaths)
     
     def show_ecm(self, position = -1, show=True):
         """
@@ -284,4 +289,11 @@ class TumorGrowth(Model):
         plt.imshow(self.N_T)
         plt.title('tumor cells')
         plt.colorbar()
+        plt.show()
+
+    def plot_deaths(self):
+        plt.plot(self.deaths)
+        plt.title('Cumulative Number of Deaths')
+        plt.xlabel('Iteration')
+        plt.ylabel('Number of Deaths')
         plt.show()
