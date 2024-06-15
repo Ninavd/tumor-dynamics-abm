@@ -249,4 +249,9 @@ class TumorGrowth(Model):
             plt.subplot(131+i)
             plot(show=False)
         plt.tight_layout()
+    def plot_NT(self):
+        print(self.N_T[self.N_T > 0])
+        plt.imshow(self.N_T)
+        plt.title('tumor cells')
+        plt.colorbar()
         plt.show()

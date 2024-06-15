@@ -8,11 +8,7 @@ def main():
 
     model.plot_all()
 
-    print(model.N_T[model.N_T > 0])
-    plt.imshow(model.N_T)
-    plt.title('tumor cells')
-    plt.colorbar()
-    plt.show()
+    model.plot_NT()
 
 if __name__ == "__main__":
     main()
