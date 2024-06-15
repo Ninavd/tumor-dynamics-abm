@@ -8,7 +8,7 @@ def main():
     model = TumorGrowth(51, 51, seed=143)
     model.run_simulation(steps=500)
 
-    model.plot_all()
+    model.plot_all(position=[0, 250, -1])
 
     model.plot_NT()
 

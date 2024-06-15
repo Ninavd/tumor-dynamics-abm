@@ -217,46 +217,66 @@ class TumorGrowth(Model):
         self.ecm_layers.append(copy.deepcopy(self.ecm_layer.data))
         self.nutrient_layers.append(copy.deepcopy(self.nutrient_layer.data))
         self.N_Ts.append(copy.deepcopy(self.N_T))
+    
+    def show_ecm(self, position = -1, show=True):
         """
         Plot current ECM density field.
         """
-        im = plt.imshow(self.ecm_layer.data)
-        plt.title('ECM field')
-        plt.colorbar(im, fraction=0.046, pad=0.04)
-        plt.show() if show else None
+        fig, axs = plt.subplots()
+        im = axs.imshow(self.ecm_layers[position])
+        axs.set_title('ECM field')
+        plt.colorbar(im, ax=axs, fraction=0.046, pad=0.04)
+        return fig, axs
 
-    def show_nutrients(self, show=True):
+    def show_nutrients(self, position = -1, show=True):
         """
         Plot current nutrient concentration field.
         """
-        im = plt.imshow(self.nutrient_layer.data)
-        plt.title('Nutrient field')
-        plt.colorbar(im, fraction=0.046, pad=0.04)
-        plt.show() if show else None
+        fig, axs = plt.subplots()
+        im = axs.imshow(self.nutrient_layers[position])
+        axs.set_title('Nutrient field')
+        plt.colorbar(im, ax=axs, fraction=0.046, pad=0.04)
+        return fig, axs
     
-    def show_tumor(self, show=True):
+    def show_tumor(self, position = -1, show=True):
         """
         Plot mask of the tumor. Includes necrotic cells.
         """
-        # plot different cell types w/ diff color?
-        im = plt.imshow(self.N_T > 0)
-        plt.colorbar(im, fraction=0.046, pad=0.04)
-        plt.title('Tumor')
-        plt.show() if show else None
+        fig, axs = plt.subplots()
+        im = axs.imshow(self.N_Ts[position])
+        axs.set_title('Tumor')
+        plt.colorbar(im, ax=axs, fraction=0.046, pad=0.04)
+        return fig, axs
     
-    def plot_all(self):
+    def plot_all(self, position = -1):
         """
         Plot ECM, nutrient field and tumour in a single figure.
         """
-        plt.figure(figsize=(12, 5))
+        if type(position) == int:
+            positions = [position]
+        else:
+            positions = position
+        
+        for position in positions:
+            final_fig, final_axs = plt.subplots(1, 3, figsize=(15, 5))
 
-        plot_funcs = [self.show_ecm, self.show_nutrients, self.show_tumor]
-        for i, plot in enumerate(plot_funcs):
-            plt.subplot(131+i)
-            plot(show=False)
-        plt.tight_layout()
+            ecm_fig, ecm_axs = self.show_ecm(position = position)
+            nutrient_fig, nutrient_axs = self.show_nutrients(position = position)
+            tumor_fig, tumor_axs = self.show_tumor(position = position)
+
+            final_axs[0].imshow(ecm_axs.get_images()[0].get_array())
+            final_axs[0].set_title('ECM field')
+            final_axs[1].imshow(nutrient_axs.get_images()[0].get_array())
+            final_axs[1].set_title('Nutrient field')
+            final_axs[2].imshow(tumor_axs.get_images()[0].get_array())
+            final_axs[2].set_title('Tumor')
+            
+            plt.close(ecm_fig)
+            plt.close(nutrient_fig)
+            plt.close(tumor_fig)
+            plt.show()
+
     def plot_NT(self):
-        print(self.N_T[self.N_T > 0])
         plt.imshow(self.N_T)
         plt.title('tumor cells')
         plt.colorbar()
