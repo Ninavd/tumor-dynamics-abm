@@ -188,12 +188,3 @@ class TumorCell(Agent):
         self.state = 'necrotic'
         # self.model.remove_agent()
     
-    # def normalize(self, P, I, D=0):
-    #     '''
-    #     This method should normalize the probabilities of proliferating and invading and dying.
-    #     '''
-    #     P_p = P / (P + I+D)
-    #     P_i = I / (P + I+D)
-    #     P_d = D / (P + I + D)
-
-    #     return P_p, P_i, P_d
