@@ -1,4 +1,3 @@
-import random
 import copy 
 
 from mesa import Model
@@ -14,12 +13,14 @@ class TumorGrowth(Model):
     '''
     Tumor Growth Model
     '''
-    def __init__(self, height = 201, width = 201):
+    def __init__(self, height = 201, width = 201, seed = np.random.randint(1000)):
         # height and width still to be adjusted for now smaller values
         super().__init__()
 
         self.height = height
         self.width = width
+        self.seed = seed
+        np.random.seed(self.seed)
 
         self.center = int((height - 1) /2)
 
@@ -48,12 +49,12 @@ class TumorGrowth(Model):
         """
         for x in range(self.width):
             for y in range(self.height):
-                value = random.uniform(0,1)
+                value = np.random.uniform(0,1)
                 self.ecm_layer.set_cell((x,y), value)
                 if x == 0 or x == self.width - 1 or y == 0 or y == self.height - 1:
                     self.nutrient_layer.set_cell((x,y), value=1)
                 else:
-                    nutrient_value = random.uniform(0,1)
+                    nutrient_value = np.random.uniform(0,1)
                     self.nutrient_layer.set_cell((x,y), nutrient_value)
 
         # First tumor cell does not survive when nutrients are initialized like this
@@ -71,7 +72,7 @@ class TumorGrowth(Model):
         """
         assert state in ['proliferating', 'invasive', 'necrotic'], 'Invalid state. State must be: necrotic, proliferating or invasive.'
         
-        tumorcell = TumorCell(state, id, self)
+        tumorcell = TumorCell(state, id, self, seed=self.seed)
         self.grid.place_agent(tumorcell, pos)
         self.N_T[pos] += 1
     

@@ -7,9 +7,12 @@ class TumorCell(Agent):
     This class is for the use of agent Tumor cell. 
     input: state (str) - the state of the tumor cell. Options are: proliferating, migrating, necrotic, stationary.
     '''
-    def __init__(self, state, unique_id, model):
+    def __init__(self, state, unique_id, model, seed):
         super().__init__(unique_id, model)
         self.state = state
+        self.seed = seed
+        np.random.seed(self.seed)
+
         self.next_state = self.state
         self.age = 0
         self.app = 0.1
@@ -21,6 +24,7 @@ class TumorCell(Agent):
         self.theta_p = 0.2
         self.nutrient_threshold = 0.02
         self.chance_of_randomly_dying = 0 # change to > 0 if you want to implement random death of a cell
+        self.seed = seed
 
     def generate_next_state(self, nutrient_score):
         probability_of_proliferate = self.probability_proliferate(nutrient_score)
