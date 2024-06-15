@@ -28,6 +28,9 @@ class TumorGrowth(Model):
         self.nutrient_layer = PropertyLayer("Nutrients", self.height, self.width, default_value=np.float64(1.0))
         self.grid = MultiGrid(self.height, self.width, torus=False, property_layers=[self.ecm_layer, self.nutrient_layer])
 
+        self.ecm_layers = []
+        self.nutrient_layers = []
+        self.N_Ts = []
 
         self.N_T = np.zeros((self.height, self.width))
         self.k = 0.02
@@ -56,6 +59,7 @@ class TumorGrowth(Model):
                 else:
                     nutrient_value = np.random.uniform(0,1)
                     self.nutrient_layer.set_cell((x,y), nutrient_value)
+        self.save_iteration_data()
 
         # First tumor cell does not survive when nutrients are initialized like this
         # while self.nutrient_layer.data[self.center, self.center] == 0:
@@ -186,12 +190,11 @@ class TumorGrowth(Model):
         """
         for i in range(steps):
             print(f'Running... step: {i}/{steps}', end='\r')
-
             if self.if_touch_border():
                 print("\n Simulation stopped: Tumor touches border")
                 return
-            
-            self.step()   
+            self.step() 
+            self.save_iteration_data()
     
     def if_touch_border(self) -> bool:
         """
@@ -210,7 +213,10 @@ class TumorGrowth(Model):
                 return True
         return False
     
-    def show_ecm(self, show=True):
+    def save_iteration_data(self):
+        self.ecm_layers.append(copy.deepcopy(self.ecm_layer.data))
+        self.nutrient_layers.append(copy.deepcopy(self.nutrient_layer.data))
+        self.N_Ts.append(copy.deepcopy(self.N_T))
         """
         Plot current ECM density field.
         """
