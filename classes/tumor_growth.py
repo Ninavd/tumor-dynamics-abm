@@ -195,7 +195,7 @@ class TumorGrowth(Model):
         Grow tumour for number of steps or until tumour touches border.
         """
         for i in range(steps):
-            print(f'Running... step: {i}/{steps}', end='\r')
+            print(f'Running... step: {i+1}/{steps}', end='\r')
             if self.if_touch_border():
                 print("\n Simulation stopped: Tumor touches border")
                 return
@@ -319,8 +319,8 @@ class TumorGrowth(Model):
         fig, ax1 = plt.subplots()
 
         ax2 = ax1.twinx()
-        ax1.plot(min_nutrient, label='Min nutrient value')
-        ax1.plot(sum_nutrient, label='sum of nutrient values')
+        ax1.plot(min_nutrient, label='Min Nutrient Value')
+        ax1.plot(sum_nutrient, label='Sum of Nutrient Values')
         ax2.plot(relative_count, 'g', label='Relative Percentage of Max Cells in Grid')
 
         ax1.set_xlabel('Iteration')
@@ -355,3 +355,74 @@ class TumorGrowth(Model):
         handles2, labels2 = ax2.get_legend_handles_labels()
         plt.legend(handles1 + handles2, labels1 + labels2)
         plt.show()
+    
+    def plot_radial_distance(self):
+        """
+        Plot the radial distance of the tumor from the center of the grid.
+        """
+        radial_distance = []
+        for i in range(len(self.N_Ts)):
+            mask = self.N_Ts[i] > 0
+            geographical_center = self.find_geographical_center(mask)
+            edges_of_mask = self.get_edges_of_a_mask(mask)
+            radial_distance.append(self.calculate_average_distance(edges_of_mask, geographical_center))
+        plt.plot(radial_distance)
+        plt.title('Average Radial Distance form Tumor Center to Tumor Edge')
+        plt.show()
+
+    def calculate_average_distance(self, mask, center):
+        """
+        Calculate the average distance from the center of the mask to the edge.
+
+        Args:
+            mask (np.ndarray): Binary mask matrix.
+
+        Returns:
+            float: Average distance to the edge.
+        """
+        distances = []
+        for i in range(mask.shape[0]):
+            for j in range(mask.shape[1]):
+                if mask[i, j]:
+                    cell = np.array([i, j])
+                    distance = np.linalg.norm(cell - center)
+                    distances.append(distance)
+        return np.mean(distances)
+    
+    def find_geographical_center(self, mask):
+        """
+        Find the geographical center of the mask.
+
+        Args:
+            mask (np.ndarray): Binary mask matrix.
+
+        Returns:
+            tuple: Coordinates of the geographical center.
+        """
+        total = np.sum(mask)
+        weighted_sum = np.array([0, 0])
+        for i in range(mask.shape[0]):
+            for j in range(mask.shape[1]):
+                if mask[i, j]:
+                    cell = np.array([i, j])
+                    weighted_sum += cell
+        return tuple(weighted_sum // total)
+
+    def get_edges_of_a_mask(self, mask):
+        """
+        Find the edges of a binary mask.
+        
+        Args: 
+            mask (np.ndarray): Binary mask matrix.
+        
+        Returns:
+            np.ndarray: Binary matrix with only full cells that border an empty cell."""
+        edges_matrix = np.zeros(mask.shape)
+        for i in range(mask.shape[0]):
+            for j in range(mask.shape[1]):
+                if mask[i, j]:
+                    if mask[i-1, j] == 0 or mask[i+1, j] == 0 or mask[i, j-1] == 0 or mask[i, j+1] == 0:
+                        edges_matrix[i, j] = 1
+        # TODO: check to see if it makes more sense to return this as a sparse matrix, as only the edges are hightlighted, so it might be sparse enough for large grids? https://stackoverflow.com/a/36971131
+        return edges_matrix
+        
