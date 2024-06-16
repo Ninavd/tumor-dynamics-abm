@@ -31,6 +31,7 @@ class TumorGrowth(Model):
         self.ecm_layers = []
         self.nutrient_layers = []
         self.N_Ts = []
+        self.births = []
         self.deaths = []
 
         self.N_T = np.zeros((self.height, self.width))
@@ -41,12 +42,14 @@ class TumorGrowth(Model):
         self.h = 0.1
         self.lam = self.D * self.tau / (self.h**2)
         self.phi_c = 0.02
+        self.number_births = 0
         self.number_deaths = 0
 
         self.init_grid()
 
         # Place single proliferative cell in the center
         self.add_agent('proliferating', self.next_id(), (self.center, self.center))
+        self.save_iteration_data()
 
     def init_grid(self):
         """
@@ -61,7 +64,6 @@ class TumorGrowth(Model):
                 else:
                     nutrient_value = np.random.uniform(0,1)
                     self.nutrient_layer.set_cell((x,y), nutrient_value)
-        self.save_iteration_data()
 
         # First tumor cell does not survive when nutrients are initialized like this
         # while self.nutrient_layer.data[self.center, self.center] == 0:
@@ -81,6 +83,7 @@ class TumorGrowth(Model):
         tumorcell = TumorCell(state, id, self, seed=self.seed)
         self.grid.place_agent(tumorcell, pos)
         self.N_T[pos] += 1
+        self.number_births += 1
     
     def displace_agent(self, agent: TumorCell, new_pos):
         """
@@ -220,8 +223,8 @@ class TumorGrowth(Model):
         self.ecm_layers.append(copy.deepcopy(self.ecm_layer.data))
         self.nutrient_layers.append(copy.deepcopy(self.nutrient_layer.data))
         self.N_Ts.append(copy.deepcopy(self.N_T))
+        self.births.append(copy.copy(self.number_births))
         self.deaths.append(copy.copy(self.number_deaths))
-        print(self.deaths)
     
     def show_ecm(self, position = -1, show=True):
         """
