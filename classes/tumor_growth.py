@@ -294,9 +294,64 @@ class TumorGrowth(Model):
         plt.colorbar()
         plt.show()
 
-    def plot_deaths(self):
-        plt.plot(self.deaths)
-        plt.title('Cumulative Number of Deaths')
-        plt.xlabel('Iteration')
-        plt.ylabel('Number of Deaths')
+    def plot_birth_deaths(self):
+        birth_rel_death = [(self.births[i]) /(self.births[i] + self.deaths[i]) for i in range(len(self.births))]
+        fig, ax1 = plt.subplots()
+        ax2 = ax1.twinx()
+        ax1.plot(self.births, label='Births')
+        ax1.plot(self.deaths, label='Deaths')
+        ax2.plot(birth_rel_death, label='Births / (Births + Deaths)', color='g')
+
+        ax1.set_xlabel('Iteration')
+        ax1.set_ylabel('Count')
+        ax2.set_ylabel('Relative Percentage', color='g')
+        ax2.tick_params(colors='green', which='both')
+        handles1, labels1 = ax1.get_legend_handles_labels()
+        handles2, labels2 = ax2.get_legend_handles_labels()
+        plt.legend(handles1 + handles2, labels1 + labels2)
+        plt.title('Cumulative Number of Births and Deaths')
+        plt.show()
+    
+    def plot_max_nutrient(self):
+        min_nutrient = [np.min(nutrient) for nutrient in self.nutrient_layers]
+        sum_nutrient = [np.sum(nutrient) for nutrient in self.nutrient_layers]
+        relative_count = [min_nutrient[i]/sum_nutrient[i] for i in range(len(min_nutrient))]
+        fig, ax1 = plt.subplots()
+
+        ax2 = ax1.twinx()
+        ax1.plot(min_nutrient, label='Min nutrient value')
+        ax1.plot(sum_nutrient, label='sum of nutrient values')
+        ax2.plot(relative_count, 'g', label='Relative Percentage of Max Cells in Grid')
+
+        ax1.set_xlabel('Iteration')
+        ax1.set_ylabel('Nutrient Value')
+        ax2.set_ylabel('Relative Percentage', color='g')
+        ax2.tick_params(colors='green', which='both')
+        plt.title('Nutrient Value in Grid')
+        handles1, labels1 = ax1.get_legend_handles_labels()
+        handles2, labels2 = ax2.get_legend_handles_labels()
+        plt.legend(handles1 + handles2, labels1 + labels2)
+        plt.show()
+    
+    def plot_max_count(self):
+        max_count = [np.max(N_T) for N_T in self.N_Ts]
+        sum_count = [np.sum(N_T) for N_T in self.N_Ts]
+        relative_count = [max_count[i]/sum_count[i] for i in range(len(max_count))]
+        fig, ax1 = plt.subplots()
+
+        ax2 = ax1.twinx()
+        ax1.plot(max_count, label='Max Cells in a Subsection of Grid')
+        ax1.plot(sum_count, label='Total Number of Cells in Grid')
+        ax2.plot(relative_count, 'g', label='Relative Percentage of Max Cells to Total Number of Cells in Grid')
+
+        ax1.set_xlabel('Iteration')
+        ax1.set_ylabel('Cell Count')
+        ax2.set_ylabel('Relative Percentage', color='g')
+        ax2.tick_params(colors='g', which='both')
+        ax2.set_ylabel('Relative Percentage', color='g')
+        
+        plt.title('Cell Count in Grid')
+        handles1, labels1 = ax1.get_legend_handles_labels()
+        handles2, labels2 = ax2.get_legend_handles_labels()
+        plt.legend(handles1 + handles2, labels1 + labels2)
         plt.show()
