@@ -47,6 +47,10 @@ class TumorGrowth(Model):
         self.number_births = 0
         self.number_deaths = 0
 
+        self.proliferating_cells = [1]
+        self.invasive_cells = [0]
+        self.necrotic_cells = [0]
+
         self.init_grid()
 
         # Place single proliferative cell in the center
@@ -66,10 +70,6 @@ class TumorGrowth(Model):
                 else:
                     nutrient_value = np.random.uniform(0,1)
                     self.nutrient_layer.set_cell((x,y), nutrient_value)
-
-        # First tumor cell does not survive when nutrients are initialized like this
-        # while self.nutrient_layer.data[self.center, self.center] == 0:
-        #     self.diffusion()
 
     def add_agent(self, state, id, pos):
         """
@@ -192,6 +192,23 @@ class TumorGrowth(Model):
         # update cell distribution
         self.cell_step()
 
+        count_proliferating = 0
+        count_invasive = 0
+        count_necrotic = 0
+    
+        for contents, _ in self.grid.coord_iter():
+            for agent in contents:
+                if agent.state == 'proliferating':
+                    count_proliferating += 1
+                elif agent.state =='invasive':
+                    count_invasive += 1
+                else:
+                    count_necrotic += 1
+            
+        self.proliferating_cells.append(count_proliferating)
+        self.invasive_cells.append(count_invasive)
+        self.necrotic_cells.append(count_necrotic)
+
     def run_simulation(self, steps=10):
         """
         Grow tumour for number of steps or until tumour touches border.
@@ -252,6 +269,12 @@ class TumorGrowth(Model):
         im = axs.imshow(self.N_Ts[position])
         return fig, axs
     
+    # def plot_NT(self):
+    #     plt.imshow(self.N_T)
+    #     plt.title('tumor cells')
+    #     plt.colorbar()
+    #     plt.show()
+
     def plot_all(self, position = -1):
         """
         Plot ECM, nutrient field and tumour in a single figure.
@@ -290,11 +313,6 @@ class TumorGrowth(Model):
             plt.suptitle(f'ECM, Nutrient, and Tumor Values at Iteration {position%(len(self.ecm_layers))} of {len(self.ecm_layers)-1} for a {self.height}x{self.width} Grid')
             plt.show()
 
-    def plot_NT(self):
-        plt.imshow(self.N_T)
-        plt.title('tumor cells')
-        plt.colorbar()
-        plt.show()
 
     def plot_birth_deaths(self):
         birth_rel_death = [(self.births[i]) /(self.births[i] + self.deaths[i]) for i in range(len(self.births))]
@@ -425,7 +443,7 @@ class TumorGrowth(Model):
                 if mask[i, j]:
                     if mask[i-1, j] == 0 or mask[i+1, j] == 0 or mask[i, j-1] == 0 or mask[i, j+1] == 0:
                         edges_matrix[i, j] = 1
-        # TODO: check to see if it makes more sense to return this as a sparse matrix, as only the edges are hightlighted, so it might be sparse enough for large grids? https://stackoverflow.com/a/36971131
+        # TODO: check to see if it makes more sense to return this as a sparse matrix, as only the edges are highlighted, so it might be sparse enough for large grids? https://stackoverflow.com/a/36971131
         return edges_matrix
         
     def plot_roughness(self):
@@ -444,11 +462,11 @@ class TumorGrowth(Model):
             else: 
                 roughness = np.sqrt(variance / N_t)
                 roughness_values.append(roughness)
-            print(f"Roughness of the imperfect circle: {roughness}")
+            #print(f"Roughness of the imperfect circle: {roughness}")
         plt.plot(roughness_values)
         plt.title('Roughness of the Tumor')
         plt.xlabel('Iteration')
-        plt.ylabel(r'\text{Roughness} $\sqrt{ \frac{1}{N_T} \sum_{i=1}^{N} (r_i-r_0)^{2}}$')
+        plt.ylabel(r'Roughness $\sqrt{ \frac{1}{N_T} \sum_{i=1}^{N} (r_i-r_0)^{2}}$')
         plt.show()
     
     def compute_variance_of_roughness(self, mask, center):
@@ -493,36 +511,102 @@ class TumorGrowth(Model):
         """
         timestamp = time.time()
         with open(f'simulation_parameters_{timestamp}.txt', 'w') as f:
-            f.write(f"Seed: {self.seed}\n")
-            f.write(f"Height: {self.height}\n")
-            f.write(f"Width: {self.width}\n")
-            f.write(f"Total Number of Births: {self.number_births}\n")
-            f.write(f"Total Number of Deaths: {self.number_deaths}\n")
-            f.write(f"k: {self.k}\n")
-            f.write(f"tau: {self.tau}\n")
-            f.write(f"gamma: {self.gamma}\n")
-            f.write(f"D: {self.D}\n")
-            f.write(f"h: {self.h}\n")
-            f.write(f"lam: {self.lam}\n")
-            f.write(f"phi_c: {self.phi_c}\n")
-            f.write(f"Number Iterations: {len(self.N_Ts) - 1}\n")
+            f.write(f"Seed:{self.seed}\n")
+            f.write(f"Height:{self.height}\n")
+            f.write(f"Width:{self.width}\n")
+            f.write(f"Total_Number_of_Births:{self.number_births}\n")
+            f.write(f"Total_Number_of_Deaths:{self.number_deaths}\n")
+            f.write(f"k:{self.k}\n")
+            f.write(f"tau:{self.tau}\n")
+            f.write(f"gamma:{self.gamma}\n")
+            f.write(f"D:{self.D}\n")
+            f.write(f"h:{self.h}\n")
+            f.write(f"lam:{self.lam}\n")
+            f.write(f"phi_c:{self.phi_c}\n")
+            f.write(f"Number_Iterations:{len(self.N_Ts) - 1}\n")
 
-        output = open(f'ECM_layers_data_{time.time()}.pkl', 'wb')
+        output = open(f'ecm_layers_data_{timestamp}.pkl', 'wb')
         pickle.dump(self.ecm_layers, output)
         output.close()
 
-        output = open(f'Nutrient_layers_data_{time.time()}.pkl', 'wb')
+        output = open(f'nutrient_layers_data_{timestamp}.pkl', 'wb')
         pickle.dump(self.nutrient_layers, output)
         output.close()
 
-        output = open(f'N_Ts_data_{time.time()}.pkl', 'wb')
+        output = open(f'n_ts_data_{timestamp}.pkl', 'wb')
         pickle.dump(self.N_Ts, output)
         output.close()
 
-        output = open(f'Births_data_{time.time()}.pkl', 'wb')
+        output = open(f'births_data_{timestamp}.pkl', 'wb')
         pickle.dump(self.births, output)
         output.close()
 
-        output = open(f'Deaths_data_{time.time()}.pkl', 'wb')
+        output = open(f'deaths_data_{timestamp}.pkl', 'wb')
         pickle.dump(self.deaths, output)
         output.close()
+
+        print(len(self.N_Ts))
+
+    def load_simulation_data_from_file(self, timestamp):
+        parameter_values = []
+        with open(f'simulation_parameters_{timestamp}.txt', 'r') as f:
+            for line in f:
+                parameter_values.append(line.split(':')[1].split('\n')[0])
+            self.seed = float(parameter_values[0])
+            self.height = float(parameter_values[1])
+            self.width = float(parameter_values[2])
+            self.number_births = float(parameter_values[3])
+            self.number_deaths = float(parameter_values[4])
+            self.k = float(parameter_values[5])
+            self.tau = float(parameter_values[6])
+            self.gamma = float(parameter_values[7])
+            self.D = float(parameter_values[8])
+            self.h = float(parameter_values[9])
+            self.lam = float(parameter_values[10])
+            self.phi_c = float(parameter_values[11])
+
+        ECM_file = open(f'ecm_layers_data_{timestamp}.pkl', 'rb')
+        ECM_file_pkl = pickle.load(ECM_file)
+        self.ecm_layers = ECM_file_pkl
+        ECM_file.close()
+
+        nutrient_file = open(f'nutrient_layers_data_{timestamp}.pkl', 'rb')
+        nutrient_file_pkl = pickle.load(nutrient_file)
+        self.nutrient_layers = nutrient_file_pkl
+        nutrient_file.close()
+
+        N_Ts_file = open(f'n_ts_data_{timestamp}.pkl', 'rb')
+        N_Ts_file_pkl = pickle.load(N_Ts_file)
+        self.N_Ts = N_Ts_file_pkl
+        N_Ts_file.close()
+        
+        birth_file = open(f'births_data_{timestamp}.pkl', 'rb')
+        birth_file_pkl = pickle.load(birth_file)
+        self.births = birth_file_pkl
+        birth_file.close()
+        
+        death_file = open(f'deaths_data_{timestamp}.pkl', 'rb')
+        death_file_pkl = pickle.load(death_file)
+        self.deaths = death_file_pkl
+        death_file.close()
+            
+    def plot_cell_types(self):
+        fig, ax1 = plt.subplots()
+        ax1.plot(self.proliferating_cells, label = 'Proliferative Cells')
+        ax1.plot(self.invasive_cells, label = 'Invasive Cells')
+        ax1.plot(self.necrotic_cells, label = 'Necrotic Cells')
+        plt.legend()
+        plt.show()
+
+    def plot_proportion_cell_types(self):
+        fig, ax1 = plt.subplots()
+        sum_count = np.array([np.sum(N_T) for N_T in self.N_Ts])
+        # relative_proliferating = [self.proliferating_cells[i]/sum_count[i] for i in range(len(self.proliferating_cells))]
+        # relative_invasive = [self.invasive_cells[i]/sum_count[i] for i in range(len(self.proliferating_cells))]
+        # relative_necrotic = [self.necrotic_cells[i]/sum_count[i] for i in range(len(self.proliferating_cells))]
+        ax1.plot(np.array(self.proliferating_cells)/sum_count, label = 'Proliferative Cells')
+        ax1.plot(np.array(self.invasive_cells)/sum_count, label = 'Invasive Cells')
+        ax1.plot(np.array(self.necrotic_cells)/sum_count, label = 'Necrotic Cells')
+        plt.legend()
+        plt.show()
+

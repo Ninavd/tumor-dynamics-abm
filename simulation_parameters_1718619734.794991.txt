@@ -1,0 +1,13 @@
+Seed:913
+Height:50
+Width:50
+Total_Number_of_Births:32
+Total_Number_of_Deaths:0
+k:0.02
+tau:1
+gamma:0.0005
+D:0.0001
+h:0.1
+lam:0.009999999999999998
+phi_c:0.02
+Number_Iterations:250
