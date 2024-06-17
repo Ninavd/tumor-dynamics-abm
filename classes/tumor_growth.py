@@ -514,7 +514,7 @@ class TumorGrowth(Model):
         """
         # Save parameters to a readable txt file
         timestamp = str(time.time()).split('.')[0]
-        with open(f'simulation_parameters_{timestamp}.txt', 'w') as f:
+        with open(f'save_files/simulation_parameters_{timestamp}.txt', 'w') as f:
             f.write(f"Seed:{self.seed}\n")
             f.write(f"Height:{self.height}\n")
             f.write(f"Width:{self.width}\n")
@@ -530,15 +530,15 @@ class TumorGrowth(Model):
             f.write(f"Number_Iterations:{len(self.N_Ts) - 1}\n")
 
         # Save simulation data (ecm data, nutrient data, tumor cell data, deahts and births data to a npy file
-        with open(f'ecm_layers_data_{timestamp}.npy', 'wb') as f:
+        with open(f'save_files/ecm_layers_data_{timestamp}.npy', 'wb') as f:
             np.save(f, self.ecm_layers)
-        with open(f'nutrient_layers_data_{timestamp}.npy', 'wb') as f:
+        with open(f'save_files/nutrient_layers_data_{timestamp}.npy', 'wb') as f:
             np.save(f, self.nutrient_layers)
-        with open(f'n_ts_data_{timestamp}.npy', 'wb') as f:
+        with open(f'save_files/n_ts_data_{timestamp}.npy', 'wb') as f:
             np.save(f, self.ecm_layers)
-        with open(f'births_data_{timestamp}.npy', 'wb') as f:
+        with open(f'save_files/births_data_{timestamp}.npy', 'wb') as f:
             np.save(f, self.births)
-        with open(f'deaths_data_{timestamp}.npy', 'wb') as f:
+        with open(f'save_files/deaths_data_{timestamp}.npy', 'wb') as f:
             np.save(f, self.deaths)
     
         return timestamp
@@ -552,7 +552,7 @@ class TumorGrowth(Model):
         timestamp = str(timestamp)
         parameter_values = []
 
-        with open(f'simulation_parameters_{timestamp}.txt', 'r') as f:
+        with open(f'save_files/simulation_parameters_{timestamp}.txt', 'r') as f:
             for line in f:
                 parameter_values.append(line.split(':')[1].split('\n')[0])
             self.seed = float(parameter_values[0])
@@ -568,15 +568,15 @@ class TumorGrowth(Model):
             self.lam = float(parameter_values[10])
             self.phi_c = float(parameter_values[11])
 
-        with open(f'ecm_layers_data_{timestamp}.npy', 'rb') as f:
+        with open(f'save_files/ecm_layers_data_{timestamp}.npy', 'rb') as f:
             self.ecm_layers = np.load(f)
-        with open(f'nutrient_layers_data_{timestamp}.npy', 'rb') as f:
+        with open(f'save_files/nutrient_layers_data_{timestamp}.npy', 'rb') as f:
             self.nutrient_layers = np.load(f)
-        with open(f'n_ts_data_{timestamp}.npy', 'rb') as f:
+        with open(f'save_files/n_ts_data_{timestamp}.npy', 'rb') as f:
             self.N_Ts = np.load(f)
-        with open(f'births_data_{timestamp}.npy', 'rb') as f:
+        with open(f'save_files/births_data_{timestamp}.npy', 'rb') as f:
             self.births = np.load(f)
-        with open(f'deaths_data_{timestamp}.npy', 'rb') as f:
+        with open(f'save_files/deaths_data_{timestamp}.npy', 'rb') as f:
             self.deaths = np.load(f)
             
     def plot_cell_types(self):
