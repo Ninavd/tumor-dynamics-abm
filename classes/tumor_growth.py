@@ -9,8 +9,6 @@ from math import e
 import matplotlib.pyplot as plt
 from classes.tumor_cell import TumorCell
 import time as time
-import pickle
-
 class TumorGrowth(Model):
     '''
     Tumor Growth Model
