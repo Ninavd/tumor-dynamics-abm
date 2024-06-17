@@ -525,30 +525,23 @@ class TumorGrowth(Model):
             f.write(f"phi_c:{self.phi_c}\n")
             f.write(f"Number_Iterations:{len(self.N_Ts) - 1}\n")
 
-        output = open(f'ecm_layers_data_{timestamp}.pkl', 'wb')
-        pickle.dump(self.ecm_layers, output)
-        output.close()
-
-        output = open(f'nutrient_layers_data_{timestamp}.pkl', 'wb')
-        pickle.dump(self.nutrient_layers, output)
-        output.close()
-
-        output = open(f'n_ts_data_{timestamp}.pkl', 'wb')
-        pickle.dump(self.N_Ts, output)
-        output.close()
-
-        output = open(f'births_data_{timestamp}.pkl', 'wb')
-        pickle.dump(self.births, output)
-        output.close()
-
-        output = open(f'deaths_data_{timestamp}.pkl', 'wb')
-        pickle.dump(self.deaths, output)
-        output.close()
-
-        print(len(self.N_Ts))
+        with open(f'ecm_layers_data_{timestamp}.npy', 'wb') as f:
+            np.save(f, self.ecm_layers)
+        with open(f'nutrient_layers_data_{timestamp}.npy', 'wb') as f:
+            np.save(f, self.nutrient_layers)
+        with open(f'n_ts_data_{timestamp}.npy', 'wb') as f:
+            np.save(f, self.ecm_layers)
+        with open(f'births_data_{timestamp}.npy', 'wb') as f:
+            np.save(f, self.births)
+        with open(f'deaths_data_{timestamp}.npy', 'wb') as f:
+            np.save(f, self.deaths)
+    
+        return timestamp
 
     def load_simulation_data_from_file(self, timestamp):
+        timestamp = str(timestamp)
         parameter_values = []
+
         with open(f'simulation_parameters_{timestamp}.txt', 'r') as f:
             for line in f:
                 parameter_values.append(line.split(':')[1].split('\n')[0])
@@ -565,30 +558,16 @@ class TumorGrowth(Model):
             self.lam = float(parameter_values[10])
             self.phi_c = float(parameter_values[11])
 
-        ECM_file = open(f'ecm_layers_data_{timestamp}.pkl', 'rb')
-        ECM_file_pkl = pickle.load(ECM_file)
-        self.ecm_layers = ECM_file_pkl
-        ECM_file.close()
-
-        nutrient_file = open(f'nutrient_layers_data_{timestamp}.pkl', 'rb')
-        nutrient_file_pkl = pickle.load(nutrient_file)
-        self.nutrient_layers = nutrient_file_pkl
-        nutrient_file.close()
-
-        N_Ts_file = open(f'n_ts_data_{timestamp}.pkl', 'rb')
-        N_Ts_file_pkl = pickle.load(N_Ts_file)
-        self.N_Ts = N_Ts_file_pkl
-        N_Ts_file.close()
-        
-        birth_file = open(f'births_data_{timestamp}.pkl', 'rb')
-        birth_file_pkl = pickle.load(birth_file)
-        self.births = birth_file_pkl
-        birth_file.close()
-        
-        death_file = open(f'deaths_data_{timestamp}.pkl', 'rb')
-        death_file_pkl = pickle.load(death_file)
-        self.deaths = death_file_pkl
-        death_file.close()
+        with open(f'ecm_layers_data_{timestamp}.npy', 'rb') as f:
+            self.ecm_layers = np.load(f)
+        with open(f'nutrient_layers_data_{timestamp}.npy', 'rb') as f:
+            self.nutrient_layers = np.load(f)
+        with open(f'n_ts_data_{timestamp}.npy', 'rb') as f:
+            self.N_Ts = np.load(f)
+        with open(f'births_data_{timestamp}.npy', 'rb') as f:
+            self.births = np.load(f)
+        with open(f'deaths_data_{timestamp}.npy', 'rb') as f:
+            self.deaths = np.load(f)
             
     def plot_cell_types(self):
         fig, ax1 = plt.subplots()
