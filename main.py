@@ -5,8 +5,8 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def main():
-    model = TumorGrowth(101, 101, seed=913)
-    model.run_simulation(steps=1000)
+    model = TumorGrowth(51, 51, seed=913)
+    model.run_simulation(steps=250)
 
     model.plot_all(position=[0, 125, -1])
     model.plot_NT()
@@ -14,6 +14,7 @@ def main():
     model.plot_max_nutrient()
     model.plot_max_count()
     model.plot_radial_distance()
+    model.plot_roughness()
 
 if __name__ == "__main__":
     main()

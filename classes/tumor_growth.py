@@ -426,3 +426,61 @@ class TumorGrowth(Model):
         # TODO: check to see if it makes more sense to return this as a sparse matrix, as only the edges are hightlighted, so it might be sparse enough for large grids? https://stackoverflow.com/a/36971131
         return edges_matrix
         
+    def plot_roughness(self):
+        """
+        Plot the roughness of the tumor.
+        """
+        roughness_values = []
+
+        for i in range(len(self.N_Ts)):
+            mask = self.N_Ts[i] > 0
+            N_t = self.cells_at_tumor_surface(self.N_Ts[i], mask)
+            center = self.find_geographical_center(mask)
+            variance = self.compute_variance_of_roughness(mask, center)
+            if N_t == 0:
+                roughness_values.append(0)
+            else: 
+                roughness = np.sqrt(variance / N_t)
+                roughness_values.append(roughness)
+            print(f"Roughness of the imperfect circle: {roughness}")
+        plt.plot(roughness_values)
+        plt.title('Roughness of the Tumor')
+        plt.xlabel('Iteration')
+        plt.ylabel(r'\text{Roughness} $\sqrt{ \frac{1}{N_T} \sum_{i=1}^{N} (r_i-r_0)^{2}}$')
+        plt.show()
+    
+    def compute_variance_of_roughness(self, mask, center):
+        """
+        Computes the roughness of an imperfectly drawn circle.
+        
+        Parameters:
+        r_theta (function): A function representing the radius r(θ).
+        r0 (float): The average radius of the imperfect circle.
+        num_points (int): Number of points to sample along the circle.
+        
+        Returns:
+        float: The roughness R of the imperfect circle.
+        """
+        edge_points = np.argwhere(mask == 1)
+        radii = np.linalg.norm(edge_points - center, axis=1)
+        r0 = np.mean(radii)
+        variance_r = np.mean((radii - r0) ** 2)
+        return variance_r
+    
+    def cells_at_tumor_surface(self, N_t, mask):
+        """
+        Compute the number of cells at the tumor surface.
+
+        Args:
+            mask (np.ndarray): Binary mask matrix.
+            iteration (int): Iteration number.
+
+        Returns:
+            int: Number of cells at the tumor surface.
+        """
+        edges_matrix = self.get_edges_of_a_mask(mask)
+        for i in range(mask.shape[0]):
+            for j in range(mask.shape[1]):
+                if edges_matrix[i, j]:
+                    edges_matrix[i, j] = N_t[i, j]
+        return np.sum(edges_matrix)
