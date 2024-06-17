@@ -541,6 +541,7 @@ class TumorGrowth(Model):
         with open(f'save_files/deaths_data_{timestamp}.npy', 'wb') as f:
             np.save(f, self.deaths)
     
+        print(f"Simulation data saved to file with timestamp: {timestamp}")
         return timestamp
 
     def load_simulation_data_from_file(self, timestamp):
