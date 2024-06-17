@@ -181,9 +181,7 @@ class TumorVisualization():
     def plot_proportion_cell_types(self):
         fig, ax1 = plt.subplots()
         sum_count = np.array([np.sum(N_T) for N_T in self.model.N_Ts])
-        # relative_proliferating = [self.proliferating_cells[i]/sum_count[i] for i in range(len(self.proliferating_cells))]
-        # relative_invasive = [self.invasive_cells[i]/sum_count[i] for i in range(len(self.proliferating_cells))]
-        # relative_necrotic = [self.necrotic_cells[i]/sum_count[i] for i in range(len(self.proliferating_cells))]
+
         ax1.plot(np.array(self.model.proliferating_cells)/sum_count, label = 'Proliferative Cells')
         ax1.plot(np.array(self.model.invasive_cells)/sum_count, label = 'Invasive Cells')
         ax1.plot(np.array(self.model.necrotic_cells)/sum_count, label = 'Necrotic Cells')

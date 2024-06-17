@@ -149,7 +149,7 @@ class TumorGrowth(Model):
         all_cells = self.grid.select_cells({'ECM':lambda ecm: True})
         for x, y in all_cells:
             phi = self.nutrient_layer.data[x, y]
-            if self.phi_c > phi:
+            if phi < self.phi_c:
                 for agent in self.grid.get_cell_list_contents([x, y]):
                     agent.die() # NOTE: self.N_T is not updated! Might be better in the future...
                     self.number_deaths += 1

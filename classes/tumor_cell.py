@@ -33,7 +33,6 @@ class TumorCell(Agent):
         normalized_invasion = probability_of_invasion / (probability_of_proliferate + probability_of_invasion)
 
         random_value = np.random.random()
-
         if random_value < normalized_proliferate:
             self.next_state = 'proliferating'
         else:
@@ -44,7 +43,10 @@ class TumorCell(Agent):
         This method should return the probability of the tumor cell to proliferate.
         '''
         cell_contents = self.model.grid.get_cell_list_contents(self.pos)
-        N_T = len(cell_contents)
+        N_T = 0
+        for cell in cell_contents:
+            if cell.state != 'necrotic':
+                N_T += 1
         left = 1 - e**(-(nutrient_score/(N_T * self.theta_p))**2)
         
         right = 1
@@ -62,7 +64,11 @@ class TumorCell(Agent):
         This method should return the probability of the tumor cell to invade.
         '''
         cell_contents = self.model.grid.get_cell_list_contents(self.pos)
-        N_T = len(cell_contents)
+        N_T = 0
+        for cell in cell_contents:
+            if cell.state != 'necrotic':
+                N_T += 1
+
         left = e**(-(nutrient_score/(N_T * self.theta_i))**2)
 
         right = 1
