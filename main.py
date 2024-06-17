@@ -1,22 +1,29 @@
 from classes.tumor_growth import TumorGrowth
 from classes.tumor_cell import TumorCell
+from classes.tumor_visualizations import TumorVisualization
 import matplotlib.pyplot as plt
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def main():
-    model = TumorGrowth(50, 50, seed=913)
-    model.run_simulation(steps=2000)
+    model = TumorGrowth(150, 150, seed=913)
+    model.run_simulation(steps=20000)
+    
+    print('FINAL 10 VALUES OF')
+    print('proliferating', model.proliferating_cells[-10:-1])
+    print('invasive: ', model.invasive_cells[-10:-1])
+    print('necrotic: ', model.necrotic_cells[-10:-1])
 
-    model.plot_all(position=[0, 250, -1])
-    # model.plot_birth_deaths()
-    # model.plot_max_nutrient()
-    # model.plot_max_count()
-    # model.plot_radial_distance()
-    # model.plot_roughness()
+    visualization = TumorVisualization(model)
+    visualization.plot_all(position=[0, 250, -1])
+    visualization.plot_birth_deaths()
+    # visualization.plot_max_nutrient()
+    # visualization.plot_max_count()
+    # visualization.plot_radial_distance()
+    # visualization.plot_roughness()
 
-    model.plot_cell_types()
-    model.plot_proportion_cell_types()
+    visualization.plot_cell_types()
+    visualization.plot_proportion_cell_types()
 
     #uncomment if you want to save or load the results to a file. timestamp is the time the save_simulation_results_to_file() function was called. If using load_simulation_data_from_file() later (eg during visualization or analysis), make sure to use the correct timestamp and manually hardcode the value 
     # timestamp = model.save_simulation_results_to_file()

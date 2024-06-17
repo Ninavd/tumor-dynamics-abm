@@ -34,12 +34,10 @@ class TumorCell(Agent):
 
         random_value = np.random.random()
 
-        if normalized_invasion < normalized_proliferate:
-            if random_value < normalized_proliferate:
-                self.next_state = 'proliferating'
+        if random_value < normalized_proliferate:
+            self.next_state = 'proliferating'
         else:
-            if random_value < normalized_invasion:
-                self.next_state = 'invasive'
+            self.next_state = 'invasive'
 
     def probability_proliferate(self, nutrient_score):
         '''
