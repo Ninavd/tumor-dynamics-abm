@@ -6,7 +6,7 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def main():
     model = TumorGrowth(50, 50, seed=913)
-    model.run_simulation(steps=250)
+    model.run_simulation(steps=2000)
 
     model.plot_all(position=[0, 250, -1])
     # model.plot_birth_deaths()

@@ -172,7 +172,8 @@ class TumorGrowth(Model):
         N_T_copy = copy.copy(self.N_T) 
 
         for agent in self.agents.shuffle():
-            agent.step(self.ecm_layer, self.nutrient_layer, N_T_copy)
+            if agent.state != 'necrotic':
+                agent.step(self.ecm_layer, self.nutrient_layer, N_T_copy)
 
     def step(self):
         """
