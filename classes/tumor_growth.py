@@ -202,7 +202,7 @@ class TumorGrowth(Model):
                     count_proliferating += 1
                 elif agent.state =='invasive':
                     count_invasive += 1
-                else:
+                elif agent.state =='necrotic':
                     count_necrotic += 1
             
         self.proliferating_cells.append(count_proliferating)
