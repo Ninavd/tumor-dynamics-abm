@@ -146,13 +146,12 @@ class TumorGrowth(Model):
         """
         Make agents necrotic if nutrients below threshold.
         """
-        all_cells = self.grid.select_cells({'ECM':lambda ecm: True})
-        for x, y in all_cells:
-            phi = self.nutrient_layer.data[x, y]
+        living_agents = self.agents.select(lambda agent: agent.state != 'necrotic')
+        for agent in living_agents:
+            phi = self.nutrient_layer.data[agent.pos]
             if phi < self.phi_c:
-                for agent in self.grid.get_cell_list_contents([x, y]):
-                    agent.die() # NOTE: self.N_T is not updated! Might be better in the future...
-                    self.number_deaths += 1
+                agent.die() # NOTE: self.N_T is not updated! Might be better in the future...
+                self.number_deaths += 1
 
     def new_state(self):
         """
@@ -174,7 +173,7 @@ class TumorGrowth(Model):
 
         for agent in self.agents.shuffle():
             if agent.state != 'necrotic':
-                agent.step(self.ecm_layer, self.nutrient_layer, N_T_copy)
+                agent.step(self.nutrient_layer)
 
     def step(self):
         """
@@ -215,29 +214,18 @@ class TumorGrowth(Model):
         """
         for i in range(steps):
             print(f'Running... step: {i+1}/{steps}', end='\r')
-            if self.if_touch_border():
+            if self.touches_border():
                 print("\n Simulation stopped: Tumor touches border")
                 return
             self.step() 
             self.save_iteration_data()
     
-    def if_touch_border(self) -> bool:
+    def touches_border(self) -> bool:
         """
         Returns True if tumor touches border, else False. 
         """
-        # NOTE: this assumes height = width
-        # TODO: improve by using self.N_T (ndarray)
-        for l in range(self.height):
-            if len(self.grid.get_cell_list_contents([l, 0])) > 0:
-                return True
-            elif len(self.grid.get_cell_list_contents([0,l])) > 0:
-                return True
-            elif len(self.grid.get_cell_list_contents([l,self.width-1])) > 0:
-                return True
-            elif len(self.grid.get_cell_list_contents([self.width-1,l])) > 0:
-                return True
-        return False
-    
+        return sum(self.N_T[:, 0] + self.N_T[0, :] + self.N_T[:, self.height - 1] + self.N_T[self.width - 1, :]) != 0
+        
     def save_iteration_data(self):
         self.ecm_layers.append(copy.deepcopy(self.ecm_layer.data))
         self.nutrient_layers.append(copy.deepcopy(self.nutrient_layer.data))
@@ -245,8 +233,6 @@ class TumorGrowth(Model):
         self.births.append(copy.copy(self.number_births))
         self.deaths.append(copy.copy(self.number_deaths))
     
-    
-
     def save_simulation_results_to_file(self):
         """
         Save simulation results to a file. Namely the parameters in a txt file and the results stored in self.ECM, Nutrient, N_T, Births, Deaths lists as a pkl file. 

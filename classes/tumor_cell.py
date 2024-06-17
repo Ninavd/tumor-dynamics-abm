@@ -1,6 +1,8 @@
 from mesa import Agent
 import numpy as np
 from math import e
+import random 
+import sys
 
 class TumorCell(Agent):
     '''
@@ -9,28 +11,32 @@ class TumorCell(Agent):
     '''
     def __init__(self, state, unique_id, model, seed):
         super().__init__(unique_id, model)
+
         self.state = state
+        self.next_state = self.state
+
         self.seed = seed
         np.random.seed(self.seed)
-
-        self.next_state = self.state
+        
         self.age = 0
-        self.app = 0.1
-        self.api = -0.02
-        self.bii = 0.1
-        self.bip = 0.02
+        self.app, self.api = 0.1, -0.02
+        self.bii, self.bip = 0.1, 0.02
         self.ECM = 1
-        self.theta_i = 0.2
-        self.theta_p = 0.2
+        self.theta = 0.2
         self.nutrient_threshold = 0.02
         self.chance_of_randomly_dying = 0 # change to > 0 if you want to implement random death of a cell
-        self.seed = seed
 
     def generate_next_state(self, nutrient_score):
+        """
+        Alter state with probability p. 
+
+        Args:
+            nutrient_score (float): nutrient concentration in current cell.
+        """
         probability_of_proliferate = self.probability_proliferate(nutrient_score)
         probability_of_invasion = self.probability_invasion(nutrient_score)
         normalized_proliferate = probability_of_proliferate / (probability_of_proliferate + probability_of_invasion)
-        normalized_invasion = probability_of_invasion / (probability_of_proliferate + probability_of_invasion)
+        normalized_invasion = 1 - normalized_proliferate
 
         random_value = np.random.random()
         if random_value < normalized_proliferate:
@@ -38,123 +44,126 @@ class TumorCell(Agent):
         else:
             self.next_state = 'invasive'
 
-    def probability_proliferate(self, nutrient_score):
-        '''
-        This method should return the probability of the tumor cell to proliferate.
-        '''
-        cell_contents = self.model.grid.get_cell_list_contents(self.pos)
-        N_T = 0
-        for cell in cell_contents:
-            if cell.state != 'necrotic':
-                N_T += 1
-        left = 1 - e**(-(nutrient_score/(N_T * self.theta_p))**2)
+    def p_proliferate_invasive(self, nutrient_score, which):
+        """
+        Return probability of the tumor cell be(com)ing proliferative/invasive.
+
+        Args:
+            nutrient_score (float): nutrient concentration in current cell.
+            which (str): which probability to return, invasive or proliferate.
+        """
+        assert which in ['invasive', 'proliferate'], 'which must be invasive or proliferate' 
+        proliferate = (which == 'proliferate')
+
+        left = e**(-(nutrient_score / (self.get_N_T() * self.theta))**2)
+        left = 1 - left if proliferate else left
         
         right = 1
-        neighbors = self.model.grid.get_neighborhood(self.pos, moore = True, include_center = True)
-        neighboring_cells = self.model.grid.get_cell_list_contents(neighbors)
-        for i in range(len(neighboring_cells)):
-            if neighboring_cells[i].state == 'proliferating':
-                right *= 1 + self.app
-            if neighboring_cells[i].state == 'invasive':
-                right *= 1 + self.api
+        neighboring_cells = self.model.grid.get_neighbors(self.pos, moore=True, include_center=True)
+
+        for neighbor in neighboring_cells:
+
+            if neighbor.state == 'proliferating' and neighbor != self:
+                right *= 1 + self.app if proliferate else 1 + self.bip
+            elif neighbor.state == 'invasive' and neighbor != self:
+                right *= 1 + self.api if proliferate else 1 + self.bii
+
         return left * right
+
+    def probability_proliferate(self, nutrient_score):
+        """
+        Return probability of the tumor cell be(com)ing proliferative.
+
+        Args:
+            nutrient_score (float): nutrient concentration in current cell.
+        """
+        return self.p_proliferate_invasive(nutrient_score, which='proliferate')
 
     def probability_invasion(self, nutrient_score):
-        '''
-        This method should return the probability of the tumor cell to invade.
-        '''
-        cell_contents = self.model.grid.get_cell_list_contents(self.pos)
-        N_T = 0
-        for cell in cell_contents:
-            if cell.state != 'necrotic':
-                N_T += 1
+        """
+        Return probability of the tumor cell be(com)ing invasive.
 
-        left = e**(-(nutrient_score/(N_T * self.theta_i))**2)
-
-        right = 1
-        neighbors = self.model.grid.get_neighborhood(self.pos, moore = True, include_center = False)
-        neighboring_cells = self.model.grid.get_cell_list_contents(neighbors)
-        for i in range(len(neighboring_cells)):
-            if (neighboring_cells[i].state == 'proliferating'):
-                right *= 1 + self.bip
-            if (neighboring_cells[i].state == 'invasive'):
-                right *= 1 + self.bii
-        return left * right
+        Args:
+            nutrient_score (float): nutrient concentration in current cell.
+        """
+        return self.p_proliferate_invasive(nutrient_score, which='invasive')
     
-    def step(self, ecm_grid, nutrient_grid, N_T_copy):
-        #print(self.next_state)
+    def step(self, nutrient_grid):
+        """
+        Exhibit proliferative or invasive behavior.
+        """
         self.state = self.next_state
         if self.state == 'invasive':
-            self.invade(ecm_grid, nutrient_grid, N_T_copy)
+            self.invade(nutrient_grid)
         elif self.state == 'proliferating':
-            self.proliferate(ecm_grid, nutrient_grid, N_T_copy)
+            self.proliferate( nutrient_grid)
         
-    def invade(self, ecm_grid, nutrient_grid, N_T_copy):
-        '''
-        This method should implement a migrating step.
-        '''
-        # N_T_copy = copy.copy(self.N_T)
-        neighbors = self.model.grid.get_neighborhood(self.pos, moore = True, include_center = False)
-        list_of_0_ECM_neighbors = []
-        for neighbor in neighbors:
-            if ecm_grid.data[neighbor] == 0:
-                list_of_0_ECM_neighbors.append(neighbor)
+    def invade(self, nutrient_grid):
+        """
+        Migrate to neighboring site if possible.
+        """
+        best_cell = self.get_best_neighbor_site(nutrient_grid)
+        self.model.displace_agent(self, new_pos=best_cell) # TODO: move cells simultaneously?
 
-        if len(list_of_0_ECM_neighbors) == 0:
-            return
-        else:
-            lowest_amount = 1000
-            for ecm_0 in list_of_0_ECM_neighbors:
-                # amount_of_agents = N_T_copy[ecm_0]
-                amount_of_agents = len(self.model.grid.get_cell_list_contents(ecm_0))
-                if amount_of_agents < lowest_amount:
-                    lowest_amount = amount_of_agents
-                    open_cell = ecm_0
-                elif amount_of_agents == lowest_amount:
-                    if nutrient_grid.data[open_cell] < nutrient_grid.data[ecm_0]:
-                        open_cell = ecm_0
-                    elif nutrient_grid.data[open_cell] == nutrient_grid.data[ecm_0]:
-                        open_cell = tuple(np.random.choice(open_cell, ecm_0))
-        # TODO: move cells simultaneously
-        try:
-            self.model.displace_agent(self, new_pos=open_cell)
-        except ValueError:
-            print(open_cell)
-            print(type(open_cell))
-            return
+    def proliferate(self, nutrient_grid):
+        """
+        Create daughter cell and place on grid.
+        """
+        best_cell = self.get_best_neighbor_site(nutrient_grid)
+        self.model.add_agent('proliferating', self.model.next_id(), best_cell)  
 
-
-    def proliferate(self, ecm_grid, nutrient_grid, N_T_copy):
-        '''
-        This method should implement a proliferation of the tumor cell.
-        '''
-        # gets neighbors of the cell and appends the ones with 0 ECM to a list
-        cells = self.model.grid.get_neighborhood(self.pos, moore = True, include_center = True)
-        list_of_0_ECM_cells = []
-        for cell in cells:
-            if ecm_grid.data[cell] == 0:
-                list_of_0_ECM_cells.append(cell)
-        lowest_amount = 1000
-        # for each cell with 0 ECM, check the amount of agents in the cell and choose the one with the lowest amount. If they are the same, then choose the one with the higher nutrient value.
+    def die(self):
+        """
+        State of tumor cell is set to necrotic.
+        """
+        self.state = 'necrotic'
+    
+    def get_N_T(self):
+        """
+        Number of living tumour cells at current position.
+        """
+        N_T = 0
+        for cell in self.model.grid.get_cell_list_contents(self.pos):
+            if cell.state != 'necrotic':
+                N_T += 1
+        
+        return N_T
+    
+    def get_best_neighbor_site(self, nutrient_grid) -> tuple[int, int]:
+        """
+        Find optimal neighboring site for migration/daughter cell.
+        """
+        zero_ECM_sites = self.get_empty_ecm_sites()
         open_cell = self.pos
-        for ecm_0 in list_of_0_ECM_cells:
-            # amount_of_agents = N_T_copy[ecm_0]
-            amount_of_agents = len(self.model.grid.get_cell_list_contents(ecm_0))
-            if amount_of_agents < lowest_amount:
-                lowest_amount = amount_of_agents
+        lowest_amount = sys.maxsize
+
+        for ecm_0 in zero_ECM_sites:
+            number_of_agents = len(self.model.grid.get_cell_list_contents(ecm_0))
+
+            # prefer cells with low tumor density
+            if number_of_agents < lowest_amount:
+                lowest_amount = number_of_agents
                 open_cell = ecm_0
-            elif amount_of_agents == lowest_amount:
+
+            # if multiple have lowest density, choose on nutrients
+            elif number_of_agents == lowest_amount:
                 if nutrient_grid.data[open_cell] < nutrient_grid.data[ecm_0]:
                     open_cell = ecm_0
                 elif nutrient_grid.data[open_cell] == nutrient_grid.data[ecm_0]:
-                    open_cell = np.random.choice(open_cell, ecm_0)
+                    open_cell = random.choice((open_cell, ecm_0))
 
-        self.model.add_agent('proliferating', self.model.next_id(), open_cell) if open_cell else None # TODO: make unique id ! 
-
-    def die(self):
-        '''
-        This method should implement the death of the tumor cell.
-        '''
-        self.state = 'necrotic'
-        # self.model.remove_agent()
+        return open_cell
     
+    def get_empty_ecm_sites(self) -> list[tuple[int, int]]:
+        """
+        Find all neighboring sites with zero ECM.
+        """
+        neighbors = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
+        zero_ECM_neighbors = []
+
+        for neighbor in neighbors:
+
+            if self.model.ecm_layer.data[neighbor] == 0:
+                zero_ECM_neighbors.append(neighbor)
+
+        return zero_ECM_neighbors
