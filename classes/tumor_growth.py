@@ -8,6 +8,8 @@ import numpy as np
 from math import e
 import matplotlib.pyplot as plt
 from classes.tumor_cell import TumorCell
+import time as time
+import pickle
 
 class TumorGrowth(Model):
     '''
@@ -484,3 +486,43 @@ class TumorGrowth(Model):
                 if edges_matrix[i, j]:
                     edges_matrix[i, j] = N_t[i, j]
         return np.sum(edges_matrix)
+
+    def save_simulation_results_to_file(self):
+        """
+        Save simulation results to a file. Namely the parameters in a txt file and the results stored in self.ECM, Nutrient, N_T, Births, Deaths lists as a pkl file. 
+        """
+        timestamp = time.time()
+        with open(f'simulation_parameters_{timestamp}.txt', 'w') as f:
+            f.write(f"Seed: {self.seed}\n")
+            f.write(f"Height: {self.height}\n")
+            f.write(f"Width: {self.width}\n")
+            f.write(f"Total Number of Births: {self.number_births}\n")
+            f.write(f"Total Number of Deaths: {self.number_deaths}\n")
+            f.write(f"k: {self.k}\n")
+            f.write(f"tau: {self.tau}\n")
+            f.write(f"gamma: {self.gamma}\n")
+            f.write(f"D: {self.D}\n")
+            f.write(f"h: {self.h}\n")
+            f.write(f"lam: {self.lam}\n")
+            f.write(f"phi_c: {self.phi_c}\n")
+            f.write(f"Number Iterations: {len(self.N_Ts) - 1}\n")
+
+        output = open(f'ECM_layers_data_{time.time()}.pkl', 'wb')
+        pickle.dump(self.ecm_layers, output)
+        output.close()
+
+        output = open(f'Nutrient_layers_data_{time.time()}.pkl', 'wb')
+        pickle.dump(self.nutrient_layers, output)
+        output.close()
+
+        output = open(f'N_Ts_data_{time.time()}.pkl', 'wb')
+        pickle.dump(self.N_Ts, output)
+        output.close()
+
+        output = open(f'Births_data_{time.time()}.pkl', 'wb')
+        pickle.dump(self.births, output)
+        output.close()
+
+        output = open(f'Deaths_data_{time.time()}.pkl', 'wb')
+        pickle.dump(self.deaths, output)
+        output.close()

@@ -16,5 +16,8 @@ def main():
     model.plot_radial_distance()
     model.plot_roughness()
 
+    #uncomment if you want to save the results to a file
+    # model.save_simulation_results_to_file()
+
 if __name__ == "__main__":
     main()
