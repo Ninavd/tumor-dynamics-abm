@@ -508,8 +508,12 @@ class TumorGrowth(Model):
     def save_simulation_results_to_file(self):
         """
         Save simulation results to a file. Namely the parameters in a txt file and the results stored in self.ECM, Nutrient, N_T, Births, Deaths lists as a pkl file. 
+
+        Returns:
+            string: timestamp of when the files were saved.
         """
-        timestamp = time.time()
+        # Save parameters to a readable txt file
+        timestamp = str(time.time()).split('.')[0]
         with open(f'simulation_parameters_{timestamp}.txt', 'w') as f:
             f.write(f"Seed:{self.seed}\n")
             f.write(f"Height:{self.height}\n")
@@ -525,6 +529,7 @@ class TumorGrowth(Model):
             f.write(f"phi_c:{self.phi_c}\n")
             f.write(f"Number_Iterations:{len(self.N_Ts) - 1}\n")
 
+        # Save simulation data (ecm data, nutrient data, tumor cell data, deahts and births data to a npy file
         with open(f'ecm_layers_data_{timestamp}.npy', 'wb') as f:
             np.save(f, self.ecm_layers)
         with open(f'nutrient_layers_data_{timestamp}.npy', 'wb') as f:
@@ -539,6 +544,11 @@ class TumorGrowth(Model):
         return timestamp
 
     def load_simulation_data_from_file(self, timestamp):
+        """Loads simulation data from file.
+
+        Args:
+            timestamp (string): timestmap that the files were originally saved at (see filename you want to upload to find this value)
+        """
         timestamp = str(timestamp)
         parameter_values = []
 
