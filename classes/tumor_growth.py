@@ -1,5 +1,4 @@
 import copy 
-
 from mesa import Model
 from mesa.space import MultiGrid, PropertyLayer 
 from mesa.datacollection import DataCollector
@@ -9,6 +8,9 @@ from math import e
 import matplotlib.pyplot as plt
 from classes.tumor_cell import TumorCell
 import time as time
+from scipy.spatial import cKDTree
+import sys
+np.set_printoptions(threshold=sys.maxsize)
 
 class TumorGrowth(Model):
     '''
@@ -84,12 +86,28 @@ class TumorGrowth(Model):
         seed_points = np.random.rand(num_seed_points, 2)
         seed_points[:, 0] *= self.width
         seed_points[:, 1] *= self.height
+
+        voronoi_kdtree = cKDTree(seed_points)
         
         densities = np.random.rand(num_seed_points)
 
-        for i in range(len(self.grid)):
-            
+        grid = np.fromiter(self.grid.coord_iter(), tuple)
+        grid = [x[1] for x in grid]
 
+        _, seed_point_regions = voronoi_kdtree.query(grid, k=1)
+
+        for i in range(len(grid)):
+            value = densities[seed_point_regions[i]]
+            self.ecm_layer.set_cell(grid[i], value)
+
+
+        for x in range(self.width):
+            for y in range(self.height):
+                if x == 0 or x == self.width - 1 or y == 0 or y == self.height - 1:
+                    self.nutrient_layer.set_cell((x,y), value=1)
+                else:
+                    nutrient_value = np.random.uniform(0,1)
+                    self.nutrient_layer.set_cell((x,y), nutrient_value)
 
 
 
