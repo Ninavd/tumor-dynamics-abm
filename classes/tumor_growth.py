@@ -9,7 +9,6 @@ from math import e
 import matplotlib.pyplot as plt
 from classes.tumor_cell import TumorCell
 import time as time
-from scipy.spatial import Voronoi
 
 class TumorGrowth(Model):
     '''
@@ -85,14 +84,13 @@ class TumorGrowth(Model):
         seed_points = np.random.rand(num_seed_points, 2)
         seed_points[:, 0] *= self.width
         seed_points[:, 1] *= self.height
+        
+        densities = np.random.rand(num_seed_points)
 
-        vor = Voronoi(seed_points)
-        regions = vor.regions
+        for i in range(len(self.grid)):
+            
 
-        for region in regions:
-            value = np.random.uniform(0,1)
-            for x, y in region:
-                self.ecm_layer.set_cell((x,y), value)
+
 
 
     def add_agent(self, state, id, pos):
@@ -244,8 +242,6 @@ class TumorGrowth(Model):
         self.cell_step()
         # count number of cells of each state
         self.count_states()
-
-
 
     def run_simulation(self, steps=10):
         """
