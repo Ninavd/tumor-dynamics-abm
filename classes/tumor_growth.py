@@ -1,5 +1,5 @@
 import copy 
-import os
+import json
 
 from mesa import Model
 from mesa.space import MultiGrid, PropertyLayer 
@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from classes.tumor_cell import TumorCell
 import time
 from scipy.spatial import Voronoi
+from helpers import save_timestamp_metadata
 
 class TumorGrowth(Model):
     '''
@@ -24,6 +25,7 @@ class TumorGrowth(Model):
         self.height = height
         self.width = width
         self.seed = seed
+        self.distribution = distribution
         np.random.seed(self.seed)
 
         self.center = int((height - 1) /2)
@@ -287,21 +289,20 @@ class TumorGrowth(Model):
             self.tau, self.gamma, self.D, self.h, self.lam, self.phi_c, len(self.N_Ts) - 1]
         
         param_names = ["Seed", "Height", "Width", "Total_Number_of_Births", "Total_Number_of_Deaths", 
-            "k", "tau", "gamma", "D", "h", "lam", "phi_c", "Number_Iterations", ""]
+            "k", "tau", "gamma", "D", "h", "lam", "phi_c", "Number_Iterations"]
 
-        app, api = self.payoff[0][0], self.payoff[0][1]
-        bii, bip = self.payoff[0][0], self.payoff[1][1] 
-
+        # save simulation parameters
         with open(f'save_files/simulation_parameters_{timestamp}.txt', 'w') as f:
             for value, name in zip(params, param_names):
                 f.write(f"{name}:{value}\n")
-
-        simulation_data = [self.ecm_layers, self.nutrient_layers, self.N_Ts, self.Necs, self.births, self.deaths]
-        data_names = ['ecm_layers', 'nutrient_layers', 'n_ts', 'necs', 'births', 'deaths']
+        
+        save_timestamp_metadata(timestamp, self)
 
         # Save simulation data (ecm data, nutrient data, tumor cell data, deahts and births data to a npy file
+        simulation_data = [self.ecm_layers, self.nutrient_layers, self.N_Ts, self.Necs, self.births, self.deaths]
+        data_names = ['ecm_layers', 'nutrient_layers', 'n_ts', 'necs', 'births', 'deaths']
+        
         for data, name in zip(simulation_data, data_names):
-            
             with open(f'save_files/{name}_data_{timestamp}.npy', 'wb') as f:
                 np.save(f, data)
     
