@@ -6,39 +6,38 @@ import matplotlib.pyplot as plt
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-def main(steps, L, seed, payoff, voroni, summary, save):
+def main(steps, L, seed, payoff, voroni, summary, save, show_plot):
     
     model = TumorGrowth(payoff, L, L, seed, distribution='voroni' if voroni else 'uniform')
 
     model.run_simulation(steps=steps)
     
-    print('\n FINAL 10 VALUES OF')
-    print('proliferating', model.proliferating_cells[-10:-1])
-    print('invasive: ', model.invasive_cells[-10:-1])
-    print('necrotic: ', model.necrotic_cells[-10:-1])
+    if summary:
+        print(
+            f"""
+            ****************** SUMMARY ***************************
+            * iterations \t - {len(model.N_Ts) -1}
+            * grid size \t - {L}x{L}
+            * seed \t \t - {seed}
+            * payoff matrix \t - {payoff}
+            * ECM \t\t - {'voroni' if voroni else 'uniform'}
+            * final #(proliferating) \t - {model.proliferating_cells[-1]}
+            * final #(invasive) \t - {model.invasive_cells[-1]}
+            * final #(necrotic) \t - {model.necrotic_cells[-1]}
+            * final roughness \t - 
+            * final tumor size \t - 
+            *******************************************************
+            """
+        )
 
-    # visualization = TumorVisualization(model)
-    # visualization.plot_all(position=[0, 250, -1])
-    # visualization.plot_necrotic_cells()
-
-    # visualization.plot_birth_deaths()
-    # visualization.plot_max_nutrient()
-    # visualization.plot_max_count()
-    # visualization.plot_radial_distance()
-    # visualization.plot_roughness()
-
-    # visualization.plot_cell_types()
-    # visualization.plot_proportion_cell_types()
-
-    #uncomment if you want to save or load the results to a file. timestamp is the time the save_simulation_results_to_file() function was called. If using load_simulation_data_from_file() later (eg during visualization or analysis), make sure to use the correct timestamp and manually hardcode the value 
     if save:
-        timestamp = model.save_simulation_results_to_file()
-        # timestamp = "1718623603"
-        model.load_simulation_data_from_file(timestamp)
-        visualization = TumorVisualization(model)
-        visualization.plot_all()
-
-
+        model.save_simulation_results_to_file()
+    
+    if show_plot:
+        vis = TumorVisualization(model)
+        vis.plot_all()
+        vis.plot_cell_types()
+        vis.plot_proportion_cell_types()
 
 if __name__ == "__main__":
     # set-up parsing command line arguments
@@ -55,6 +54,7 @@ if __name__ == "__main__":
     parser.add_argument('--voroni', action="store_true", help="Initialize ECM grid as voroni diagram instead of uniform")
     parser.add_argument('--summary', action="store_true", help="print summary of simulation results")
     parser.add_argument("--save", action="store_true", help="store results in npy files")
+    parser.add_argument("--show_plot", action="store_true", help="show plot of final tumor")
 
     # read arguments from command line
     args = parser.parse_args()
@@ -66,5 +66,5 @@ if __name__ == "__main__":
 
     # run main with provided arguments
     main(
-        args.n_steps, args.L_grid, args.seed, payoff, args.voroni, args.summary, args.save
+        args.n_steps, args.L_grid, args.seed, payoff, args.voroni, args.summary, args.save, args.show_plot
         ) 
