@@ -303,7 +303,7 @@ class TumorGrowth(Model):
         with open(f'save_files/nutrient_layers_data_{timestamp}.npy', 'wb') as f:
             np.save(f, self.nutrient_layers)
         with open(f'save_files/n_ts_data_{timestamp}.npy', 'wb') as f:
-            np.save(f, self.ecm_layers)# does this not need to be self.N_Ts
+            np.save(f, self.N_Ts)# does this not need to be self.N_Ts
         with open(f'save_files/necs_data_{timestamp}.npy', 'wb') as f:
             np.save(f, self.Necs)
         with open(f'save_files/births_data_{timestamp}.npy', 'wb') as f:
