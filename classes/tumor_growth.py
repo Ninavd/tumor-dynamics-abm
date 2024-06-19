@@ -9,12 +9,13 @@ from math import e
 import matplotlib.pyplot as plt
 from classes.tumor_cell import TumorCell
 import time as time
+from scipy.spatial import Voronoi
 
 class TumorGrowth(Model):
     '''
     Tumor Growth Model
     '''
-    def __init__(self, height = 201, width = 201, seed = np.random.randint(1000)):
+    def __init__(self, height = 401, width = 401, seed = np.random.randint(1000), distribution= 'uniform'):
         # height and width still to be adjusted for now smaller values
         super().__init__()
 
@@ -32,10 +33,12 @@ class TumorGrowth(Model):
         self.ecm_layers = []
         self.nutrient_layers = []
         self.N_Ts = []
+        self.Necs = []
         self.births = []
         self.deaths = []
 
         self.N_T = np.zeros((self.height, self.width))
+        self.Nec = np.zeros((self.height, self.width))
         self.k = 0.02
         self.tau = 1
         self.gamma = 5*10**-4
@@ -49,16 +52,19 @@ class TumorGrowth(Model):
         self.proliferating_cells = [1]
         self.invasive_cells = [0]
         self.necrotic_cells = [0]
-
-        self.init_grid()
+        
+        if distribution == 'uniform':
+            self.init_uni_grid()
+        elif distribution == 'voronoi':
+            self.init_vor_grid()
 
         # Place single proliferative cell in the center
         self.add_agent('proliferating', self.next_id(), (self.center, self.center))
         self.save_iteration_data()
 
-    def init_grid(self):
+    def init_uni_grid(self):
         """
-        Initializes the ECM and nutrient field.
+        Initializes the ECM and nutrient field for a uniform distribution.
         """
         for x in range(self.width):
             for y in range(self.height):
@@ -69,6 +75,25 @@ class TumorGrowth(Model):
                 else:
                     nutrient_value = np.random.uniform(0,1)
                     self.nutrient_layer.set_cell((x,y), nutrient_value)
+    
+    def init_vor_grid(self):
+        """
+        Initializes the ECM and nutrient field for a voronoi tesselation.
+        """
+        num_seed_points = 10
+        
+        seed_points = np.random.rand(num_seed_points, 2)
+        seed_points[:, 0] *= self.width
+        seed_points[:, 1] *= self.height
+
+        vor = Voronoi(seed_points)
+        regions = vor.regions
+
+        for region in regions:
+            value = np.random.uniform(0,1)
+            for x, y in region:
+                self.ecm_layer.set_cell((x,y), value)
+
 
     def add_agent(self, state, id, pos):
         """
@@ -150,8 +175,10 @@ class TumorGrowth(Model):
         for agent in living_agents:
             phi = self.nutrient_layer.data[agent.pos]
             if phi < self.phi_c:
-                agent.die() # NOTE: self.N_T is not updated! Might be better in the future...
+                agent.die()
                 self.number_deaths += 1
+                self.N_T[agent.pos] -= 1
+                self.Nec[agent.pos] += 1
 
     def new_state(self):
         """
@@ -169,28 +196,20 @@ class TumorGrowth(Model):
         Updates the distribution of agents across the grid.
         """
         # update steps depend on CURRENT cell distribution
-        N_T_copy = copy.copy(self.N_T) 
+        # N_T_copy = copy.copy(self.N_T) Remove this??
+        # NOTE: Ja het idee was om die copy te gebruiken voor N_T, zodat ze bewegen op basis van de huidige cel verdeling
+        # ipv dat het steeds verandert, dus om ervoor te zorgen dat N_T in de formules die van de huidige timestep is, voordat ze gingen bewegen
+        # maar miss maakt het niet uit omdat ze nu in random volgorde bewegen..
 
         for agent in self.agents.shuffle():
             if agent.state != 'necrotic':
                 agent.step(self.nutrient_layer)
 
-    def step(self):
-        """
-        Single simulation step. 
-        Updates ECM, nutrients, state of agents and their distribution.
-        """
-        # degradation ecm
-        self.degredation()
-        # nutrient diffusion step
-        self.diffusion()
-        # determine cell death
-        self.cell_death()
-        # determine cell proliferation or migration
-        self.new_state()
-        # update cell distribution
-        self.cell_step()
 
+    def count_states(self):
+        """
+        Iterates through the grid counting the number of cells of each state.
+        """
         count_proliferating = 0
         count_invasive = 0
         count_necrotic = 0
@@ -207,6 +226,26 @@ class TumorGrowth(Model):
         self.proliferating_cells.append(count_proliferating)
         self.invasive_cells.append(count_invasive)
         self.necrotic_cells.append(count_necrotic)
+
+    def step(self):
+        """
+        Single simulation step. 
+        Updates ECM, nutrients, state of agents and their distribution.
+        """
+        # degradation ecm
+        self.degredation()
+        # nutrient diffusion step
+        self.diffusion()
+        # determine cell death
+        self.cell_death()
+        # determine cell proliferation or migration
+        self.new_state()
+        # update cell distribution
+        self.cell_step()
+        # count number of cells of each state
+        self.count_states()
+
+
 
     def run_simulation(self, steps=10):
         """
@@ -230,6 +269,7 @@ class TumorGrowth(Model):
         self.ecm_layers.append(copy.deepcopy(self.ecm_layer.data))
         self.nutrient_layers.append(copy.deepcopy(self.nutrient_layer.data))
         self.N_Ts.append(copy.deepcopy(self.N_T))
+        self.Necs.append(copy.deepcopy(self.Nec))
         self.births.append(copy.copy(self.number_births))
         self.deaths.append(copy.copy(self.number_deaths))
     
@@ -263,7 +303,9 @@ class TumorGrowth(Model):
         with open(f'save_files/nutrient_layers_data_{timestamp}.npy', 'wb') as f:
             np.save(f, self.nutrient_layers)
         with open(f'save_files/n_ts_data_{timestamp}.npy', 'wb') as f:
-            np.save(f, self.ecm_layers)
+            np.save(f, self.ecm_layers)# does this not need to be self.N_Ts
+        with open(f'save_files/necs_data_{timestamp}.npy', 'wb') as f:
+            np.save(f, self.Necs)
         with open(f'save_files/births_data_{timestamp}.npy', 'wb') as f:
             np.save(f, self.births)
         with open(f'save_files/deaths_data_{timestamp}.npy', 'wb') as f:
@@ -303,6 +345,8 @@ class TumorGrowth(Model):
             self.nutrient_layers = np.load(f)
         with open(f'save_files/n_ts_data_{timestamp}.npy', 'rb') as f:
             self.N_Ts = np.load(f)
+        with open(f'save_files/necs_data_{timestamp}.npy', 'rb') as f:
+            self.Necs = np.load(f)
         with open(f'save_files/births_data_{timestamp}.npy', 'rb') as f:
             self.births = np.load(f)
         with open(f'save_files/deaths_data_{timestamp}.npy', 'rb') as f:

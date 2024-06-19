@@ -19,12 +19,11 @@ class TumorCell(Agent):
         np.random.seed(self.seed)
         
         self.age = 0
-        self.app, self.api = 0.1, -0.02
+        self.app, self.api = -0.1, -0.02
         self.bii, self.bip = 0.1, 0.02
         self.ECM = 1
         self.theta = 0.2
         self.nutrient_threshold = 0.02
-        self.chance_of_randomly_dying = 0 # change to > 0 if you want to implement random death of a cell
 
     def generate_next_state(self, nutrient_score):
         """
@@ -59,13 +58,12 @@ class TumorCell(Agent):
         left = 1 - left if proliferate else left
         
         right = 1
-        neighboring_cells = self.model.grid.get_neighbors(self.pos, moore=True, include_center=True)
-
+        neighboring_cells = self.model.grid.get_neighbors(self.pos, moore=True, include_center=True if proliferate else False) 
+        
         for neighbor in neighboring_cells:
-
             if neighbor.state == 'proliferating' and neighbor != self:
                 right *= 1 + self.app if proliferate else 1 + self.bip
-            elif neighbor.state == 'invasive' and neighbor != self:
+            elif neighbor.state == 'invasive' and neighbor != self: 
                 right *= 1 + self.api if proliferate else 1 + self.bii
 
         return left * right
@@ -96,7 +94,7 @@ class TumorCell(Agent):
         if self.state == 'invasive':
             self.invade(nutrient_grid)
         elif self.state == 'proliferating':
-            self.proliferate( nutrient_grid)
+            self.proliferate(nutrient_grid)
         
     def invade(self, nutrient_grid):
         """
@@ -110,7 +108,7 @@ class TumorCell(Agent):
         Create daughter cell and place on grid.
         """
         best_cell = self.get_best_neighbor_site(nutrient_grid)
-        self.model.add_agent('proliferating', self.model.next_id(), best_cell)  
+        self.model.add_agent('proliferating', self.model.next_id(), best_cell)
 
     def die(self):
         """

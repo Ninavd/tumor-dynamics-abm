@@ -31,6 +31,16 @@ class TumorVisualization():
         fig, axs = plt.subplots()
         im = axs.imshow(self.model.N_Ts[position])
         return fig, axs
+    
+    def plot_necrotic_cells(self, position = -1, show=True):
+        """
+        Plot mask of the tumor. Includes necrotic cells.
+        """
+        fig, axs = plt.subplots()
+        im = axs.imshow(self.model.Necs[position])
+        plt.title(f'Necrotic cell distribution for a {self.model.height}x{self.model.width} Grid at iteration {len(self.model.ecm_layers)-1}')
+        #fig.colorbar(axs, fraction=0.046, pad=0.04)  #TODO: colorbar keeps getting errors
+        return fig, axs
 
     def plot_all(self, position = -1):
         """
@@ -153,8 +163,8 @@ class TumorVisualization():
         """
         roughness_values = []
 
-        for i in range(len(self.N_Ts)):
-            mask = self.N_Ts[i] > 0
+        for i in range(len(self.model.N_Ts)):
+            mask = self.model.N_Ts[i] > 0
             N_t = self.TVH.cells_at_tumor_surface(self.model.N_Ts[i], mask)
             center = self.TVH.find_geographical_center(mask)
             variance = self.TVH.compute_variance_of_roughness(mask, center)
@@ -181,6 +191,7 @@ class TumorVisualization():
     def plot_proportion_cell_types(self):
         fig, ax1 = plt.subplots()
         sum_count = np.array([np.sum(N_T) for N_T in self.model.N_Ts])
+        sum_count += np.array([np.sum(Necs) for Necs in self.model.Necs])
 
         ax1.plot(np.array(self.model.proliferating_cells)/sum_count, label = 'Proliferative Cells')
         ax1.plot(np.array(self.model.invasive_cells)/sum_count, label = 'Invasive Cells')

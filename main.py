@@ -6,8 +6,8 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def main():
-    model = TumorGrowth(150, 150, seed=913)
-    model.run_simulation(steps=20000)
+    model = TumorGrowth(101, 101, seed=913, distribution='uniform')
+    model.run_simulation(steps=1000)
     
     print('FINAL 10 VALUES OF')
     print('proliferating', model.proliferating_cells[-10:-1])
@@ -16,7 +16,8 @@ def main():
 
     visualization = TumorVisualization(model)
     visualization.plot_all(position=[0, 250, -1])
-    visualization.plot_birth_deaths()
+    visualization.plot_necrotic_cells()
+    # visualization.plot_birth_deaths()
     # visualization.plot_max_nutrient()
     # visualization.plot_max_count()
     # visualization.plot_radial_distance()
