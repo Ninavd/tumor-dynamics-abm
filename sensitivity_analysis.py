@@ -15,7 +15,7 @@ problem = ProblemSpec({
     'bounds': [[10**(-5), 10**(-3)], [0.01, 0.05], [5*10**(-5), 5*10**(-3)], [0.01, 0.05], [0.1, 0.5], [0.1, 0.5], [-0.95, 0], [-0.05, -0.01], [0.01, 0.05], [0, 0.95]]
 })
 
-replicates = 10 # NOTE: not used rn..
+replicates = 10 # NOTE: not used rn.. idk what it should be used for tbh
 steps = 1000
 distinct_samples = 2 # NOTE: small value for testing, used to be 16
 
@@ -48,13 +48,19 @@ def run_model(param_values, **kwargs):
 # generate parameter samples
 param_values = problem.sample(sobol.sample, distinct_samples)
 
-# run model with the samples
+# run model with the samples in parallel
 problem.evaluate(run_model, nprocs=4) # NOTE: can increase nprocs even more maybe
 print(problem.results)
 
 # analyze the results
 Si_sheep = problem.analyze(SALib.analyze.sobol.analyze, print_to_console=True)
 
+# SALib.analyze.sobol.analyze(
+# problem, Y, calc_second_order=True, num_resamples=100, conf_level=0.95, print_to_console=False, parallel=False, n_processors=None, keep_resamples=False, seed=None
+# )
+# see : https://salib.readthedocs.io/en/latest/api/SALib.analyze.html#module-SALib.analyze.sobol 
+
+# NOTE: everything below straight copied from notebook 4 
 def plot_index(s, params, i, title=''):
     """
     Creates a plot for Sobol sensitivity analysis that shows the contributions
@@ -102,8 +108,3 @@ for Si in (Si_sheep):
     # Total order
     plot_index(Si, problem['names'], 'T', 'Total order sensitivity')
     plt.show()
-
-# SALib.analyze.sobol.analyze(
-# problem, Y, calc_second_order=True, num_resamples=100, conf_level=0.95, print_to_console=False, parallel=False, n_processors=None, keep_resamples=False, seed=None
-# )
-# see : https://salib.readthedocs.io/en/latest/api/SALib.analyze.html#module-SALib.analyze.sobol 
