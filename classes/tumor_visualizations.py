@@ -185,6 +185,8 @@ class TumorVisualization():
         ax1.plot(self.model.proliferating_cells, label = 'Proliferative Cells')
         ax1.plot(self.model.invasive_cells, label = 'Invasive Cells')
         ax1.plot(self.model.necrotic_cells, label = 'Necrotic Cells')
+        ax1.set_xlabel('iteration')
+        ax1.set_ylabel('number of cells')
         plt.legend()
         plt.show()
 
@@ -196,6 +198,8 @@ class TumorVisualization():
         ax1.plot(np.array(self.model.proliferating_cells)/sum_count, label = 'Proliferative Cells')
         ax1.plot(np.array(self.model.invasive_cells)/sum_count, label = 'Invasive Cells')
         ax1.plot(np.array(self.model.necrotic_cells)/sum_count, label = 'Necrotic Cells')
+        ax1.set_xlabel('iteration')
+        ax1.set_ylabel('fraction of cells')
         plt.legend()
         plt.show()
 

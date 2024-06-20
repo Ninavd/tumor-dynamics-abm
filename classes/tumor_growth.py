@@ -1,4 +1,5 @@
 import copy 
+import json
 from mesa import Model
 from mesa.space import MultiGrid, PropertyLayer 
 from mesa.datacollection import DataCollector
@@ -7,22 +8,25 @@ import numpy as np
 from math import e
 import matplotlib.pyplot as plt
 from classes.tumor_cell import TumorCell
-import time as time
 from scipy.spatial import cKDTree
 import sys
 np.set_printoptions(threshold=sys.maxsize)
+from scipy.spatial import Voronoi
+from helpers import save_timestamp_metadata
 
 class TumorGrowth(Model):
     '''
     Tumor Growth Model
     '''
-    def __init__(self, height = 401, width = 401, seed = np.random.randint(1000), distribution= 'uniform'):
+    def __init__(self, payoff, height = 401, width = 401, seed = np.random.randint(1000), distribution= 'uniform'):
         # height and width still to be adjusted for now smaller values
         super().__init__()
 
+        self.payoff = payoff
         self.height = height
         self.width = width
         self.seed = seed
+        self.distribution = distribution
         np.random.seed(self.seed)
 
         self.center = int((height - 1) /2)
@@ -296,34 +300,27 @@ class TumorGrowth(Model):
         """
         # Save parameters to a readable txt file
         timestamp = str(time.time()).split('.')[0]
+
+        params = [self.seed, self.height, self.width, self.number_births, self.number_deaths, self.k, 
+            self.tau, self.gamma, self.D, self.h, self.lam, self.phi_c, len(self.N_Ts) - 1]
+        
+        param_names = ["Seed", "Height", "Width", "Total_Number_of_Births", "Total_Number_of_Deaths", 
+            "k", "tau", "gamma", "D", "h", "lam", "phi_c", "Number_Iterations"]
+
+        # save simulation parameters
         with open(f'save_files/simulation_parameters_{timestamp}.txt', 'w') as f:
-            f.write(f"Seed:{self.seed}\n")
-            f.write(f"Height:{self.height}\n")
-            f.write(f"Width:{self.width}\n")
-            f.write(f"Total_Number_of_Births:{self.number_births}\n")
-            f.write(f"Total_Number_of_Deaths:{self.number_deaths}\n")
-            f.write(f"k:{self.k}\n")
-            f.write(f"tau:{self.tau}\n")
-            f.write(f"gamma:{self.gamma}\n")
-            f.write(f"D:{self.D}\n")
-            f.write(f"h:{self.h}\n")
-            f.write(f"lam:{self.lam}\n")
-            f.write(f"phi_c:{self.phi_c}\n")
-            f.write(f"Number_Iterations:{len(self.N_Ts) - 1}\n")
+            for value, name in zip(params, param_names):
+                f.write(f"{name}:{value}\n")
+        
+        save_timestamp_metadata(timestamp, self)
 
         # Save simulation data (ecm data, nutrient data, tumor cell data, deahts and births data to a npy file
-        with open(f'save_files/ecm_layers_data_{timestamp}.npy', 'wb') as f:
-            np.save(f, self.ecm_layers)
-        with open(f'save_files/nutrient_layers_data_{timestamp}.npy', 'wb') as f:
-            np.save(f, self.nutrient_layers)
-        with open(f'save_files/n_ts_data_{timestamp}.npy', 'wb') as f:
-            np.save(f, self.ecm_layers)# does this not need to be self.N_Ts
-        with open(f'save_files/necs_data_{timestamp}.npy', 'wb') as f:
-            np.save(f, self.Necs)
-        with open(f'save_files/births_data_{timestamp}.npy', 'wb') as f:
-            np.save(f, self.births)
-        with open(f'save_files/deaths_data_{timestamp}.npy', 'wb') as f:
-            np.save(f, self.deaths)
+        simulation_data = [self.ecm_layers, self.nutrient_layers, self.N_Ts, self.Necs, self.births, self.deaths]
+        data_names = ['ecm_layers', 'nutrient_layers', 'n_ts', 'necs', 'births', 'deaths']
+        
+        for data, name in zip(simulation_data, data_names):
+            with open(f'save_files/{name}_data_{timestamp}.npy', 'wb') as f:
+                np.save(f, data)
     
         print(f"Simulation data saved to file with timestamp: {timestamp}")
         return timestamp

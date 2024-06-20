@@ -18,10 +18,8 @@ class TumorCell(Agent):
         self.seed = seed
         np.random.seed(self.seed)
         
-        self.age = 0
-        self.app, self.api = -0.1, -0.02
-        self.bii, self.bip = 0.1, 0.02
-        self.ECM = 1
+        self.app, self.api = self.model.payoff[0][0], self.model.payoff[0][1]
+        self.bii, self.bip = self.model.payoff[1][0], self.model.payoff[1][1]
         self.theta = 0.2
         self.nutrient_threshold = 0.02
 
