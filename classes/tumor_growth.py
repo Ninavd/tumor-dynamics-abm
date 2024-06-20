@@ -15,11 +15,19 @@ np.set_printoptions(threshold=sys.maxsize)
 from scipy.spatial import Voronoi
 from helpers import save_timestamp_metadata
 
+
+def number_of_cells(Model):
+    total = "to_be_continued"
+
+
 class TumorGrowth(Model):
     '''
     Tumor Growth Model
     '''
-    def __init__(self, height = 201, width = 201, steps = 1000, D= 1*10**-4, k = 0.02, gamma = 5*10**-4, phi_c= 0.02, theta_p=0.2, theta_i=0.2, app=-0.1, api=-0.02, bip=0.02, bii=0.1, seed = 913, distribution= 'uniform'):
+    def __init__(self, height = 201, width = 201, steps = 1000,
+                D= 1*10**-4, k = 0.02, gamma = 5*10**-4, phi_c= 0.02,
+                theta_p=0.2, theta_i=0.2, app=-0.1, api=-0.02, bip=0.02, bii=0.1, 
+                seed = 913, distribution= 'uniform'):
         # height and width still to be adjusted for now smaller values
         super().__init__()
         self.app, self.api = app, api
@@ -70,6 +78,11 @@ class TumorGrowth(Model):
         # Place single proliferative cell in the center
         self.add_agent('proliferating', self.next_id(), (self.center, self.center))
         self.save_iteration_data()
+
+        self.running = True
+
+        self.datacollector = DataCollector(model_reporters={"Number Of Cells": compute_gini})
+
 
     def init_uni_grid(self):
         """
