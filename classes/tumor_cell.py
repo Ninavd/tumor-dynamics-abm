@@ -33,6 +33,12 @@ class TumorCell(Agent):
         normalized_proliferate = probability_of_proliferate / (probability_of_proliferate + probability_of_invasion)
         normalized_invasion = 1 - normalized_proliferate
 
+        print('probability_of_proliferate: ', probability_of_proliferate)
+        print('probability_of_invasion: ', probability_of_invasion)
+        print('normalized_proliferate: ', normalized_proliferate)
+        print('normalized_invasion: ', normalized_invasion)
+        print('-------')
+
         random_value = np.random.random()
         if random_value < normalized_proliferate:
             self.next_state = 'proliferating'
@@ -52,6 +58,7 @@ class TumorCell(Agent):
         theta = self.model.theta_p if proliferate else self.model.theta_i
         left = e**(-(nutrient_score / (self.get_N_T() * theta))**2)
         left = 1 - left if proliferate else left
+        print('left: ',  left)
         
         right = 1
         neighboring_cells = self.model.grid.get_neighbors(self.pos, moore=True, include_center=True if proliferate else False) 
@@ -61,7 +68,7 @@ class TumorCell(Agent):
                 right *= 1 + self.model.app if proliferate else 1 + self.model.bip
             elif neighbor.state == 'invasive' and neighbor != self: 
                 right *= 1 + self.model.api if proliferate else 1 + self.model.bii
-
+        print('right:', right)
         return left * right
 
     def probability_proliferate(self, nutrient_score):
@@ -71,7 +78,9 @@ class TumorCell(Agent):
         Args:
             nutrient_score (float): nutrient concentration in current cell.
         """
-        return self.p_proliferate_invasive(nutrient_score, which='proliferate')
+        a = self.p_proliferate_invasive(nutrient_score, which='proliferate')
+        # print("proliferate probability: ", a)
+        return a
 
     def probability_invasion(self, nutrient_score):
         """
@@ -80,7 +89,9 @@ class TumorCell(Agent):
         Args:
             nutrient_score (float): nutrient concentration in current cell.
         """
-        return self.p_proliferate_invasive(nutrient_score, which='invasive')
+        b = self.p_proliferate_invasive(nutrient_score, which='invasive')
+        # print('invasion: probability: ', b)
+        return b
     
     def step(self, nutrient_grid):
         """
@@ -111,6 +122,7 @@ class TumorCell(Agent):
         State of tumor cell is set to necrotic.
         """
         self.state = 'necrotic'
+        self.model.scheduler.remove(self)
         self.model.grid.remove_agent(self)
         self.remove()
     

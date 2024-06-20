@@ -134,6 +134,7 @@ class TumorGrowth(Model):
         self.grid.place_agent(tumorcell, pos)
         self.N_T[pos] += 1
         self.number_births += 1
+        self.scheduler.add(tumorcell)
     
     def displace_agent(self, agent: TumorCell, new_pos):
         """
