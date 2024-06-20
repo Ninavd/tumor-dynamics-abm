@@ -283,11 +283,17 @@ class TumorGrowth(Model):
         """
         for i in range(self.steps):
             print(f'Running... step: {i+1}/{self.steps}', end='\r')
+
             if self.touches_border():
                 print("\n Simulation stopped: Tumor touches border")
-                return
+                self.running = False
+                return len(self.agents)
+            
             self.step() 
             self.save_iteration_data()
+        self.running = False
+
+        return len(self.agents)
     
     def touches_border(self) -> bool:
         """
