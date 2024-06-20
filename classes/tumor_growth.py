@@ -117,8 +117,6 @@ class TumorGrowth(Model):
                     nutrient_value = np.random.uniform(0,1)
                     self.nutrient_layer.set_cell((x,y), nutrient_value)
 
-
-
     def add_agent(self, state, id, pos):
         """
         Create new agent and update agent distribution.
@@ -229,7 +227,6 @@ class TumorGrowth(Model):
         for agent in self.agents.shuffle():
             if agent.state != 'necrotic':
                 agent.step(self.nutrient_layer)
-
 
     def count_states(self):
         """
