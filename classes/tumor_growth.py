@@ -1,51 +1,41 @@
 import copy 
-import json
+import numpy as np
+import sys
+import time
+
 from mesa import Model
 from mesa.space import MultiGrid, PropertyLayer 
 from mesa.datacollection import DataCollector
-from mesa.time import SimultaneousActivation
-import numpy as np
-from math import e
-import matplotlib.pyplot as plt
-from classes.tumor_cell import TumorCell
 from scipy.spatial import cKDTree
-import sys
-import time
-np.set_printoptions(threshold=sys.maxsize)
-from scipy.spatial import Voronoi
+
+from classes.tumor_cell import TumorCell
 from helpers import save_timestamp_metadata
+
+np.set_printoptions(threshold=sys.maxsize)
+
 
 class TumorGrowth(Model):
     '''
     Tumor Growth Model
     '''
     def __init__(self, height = 201, width = 201, steps = 1000, D= 1*10**-4, k = 0.02, gamma = 5*10**-4, phi_c= 0.02, theta_p=0.2, theta_i=0.2, app=-0.1, api=-0.02, bip=0.02, bii=0.1, seed = 913, distribution= 'uniform'):
-        # height and width still to be adjusted for now smaller values
+
         super().__init__()
-        self.app, self.api = app, api
-        self.bip, self.bii = bip, bii
+
         self.height = height
         self.width = width
+        self.center = int((self.height - 1) /2)
+
         self.steps = steps
         self.seed = seed
-        self.distribution = distribution
-        np.random.seed(self.seed)
-        self.center = int((self.height - 1) /2)
-        self.scheduler = SimultaneousActivation(self, self.agents)
 
         self.ecm_layer = PropertyLayer("ECM", self.height, self.width, default_value=np.float64(0.0))
         self.nutrient_layer = PropertyLayer("Nutrients", self.height, self.width, default_value=np.float64(1.0))
         self.grid = MultiGrid(self.height, self.width, torus=False, property_layers=[self.ecm_layer, self.nutrient_layer])
 
-        self.ecm_layers = []
-        self.nutrient_layers = []
-        self.N_Ts = []
-        self.Necs = []
-        self.births = []
-        self.deaths = []
-
-        self.N_T = np.zeros((self.height, self.width))
-        self.Nec = np.zeros((self.height, self.width))
+        # model parameters
+        self.app, self.api = app, api
+        self.bip, self.bii = bip, bii
         self.k = k
         self.tau = 1
         self.gamma = gamma
@@ -55,39 +45,68 @@ class TumorGrowth(Model):
         self.theta_i = theta_i
         self.lam = self.D * self.tau / (self.h**2)
         self.phi_c = phi_c
+        
+        # initialize ECM field
+        self.distribution = distribution
+        if distribution == 'uniform':
+            self.init_uniform_ECM()
+        elif distribution == 'voronoi':
+            self.init_voronoi_ECM()
+
+        # initialize nutrient field
+        self.init_nutrient_layer()
+
+        # keep track of living & necrotic tumor cells
+        self.N_T = np.zeros((self.height, self.width))
+        self.Nec = np.zeros((self.height, self.width))
         self.number_births = 0
         self.number_deaths = 0
+
+        # place single proliferative cell in the center
+        self.add_agent('proliferating', self.next_id(), (self.center, self.center))
+
+        # seed the simulation
+        np.random.seed(self.seed)
+        
+        # for recording grid snapshots at every iteration
+        self.ecm_layers = []
+        self.nutrient_layers = []
+        self.N_Ts = []
+        self.Necs = []
+        self.births = []
+        self.deaths = [] 
 
         self.proliferating_cells = [1]
         self.invasive_cells = [0]
         self.necrotic_cells = [0]
-        
-        if distribution == 'uniform':
-            self.init_uni_grid()
-        elif distribution == 'voronoi':
-            self.init_vor_grid()
 
-        # Place single proliferative cell in the center
-        self.add_agent('proliferating', self.next_id(), (self.center, self.center))
-        self.save_iteration_data()
+        # save initial state
+        self.save_iteration_data() 
 
-    def init_uni_grid(self):
+    def init_nutrient_layer(self):
         """
-        Initializes the ECM and nutrient field for a uniform distribution.
+        Initializes the nutrient concentration field by sampling 
+        from uniform distribution.
+        """
+        for x in range(1, self.width - 1):
+            for y in range(1, self.height - 1):
+
+                nutrient_value = np.random.uniform(0,1)
+                self.nutrient_layer.set_cell((x, y), nutrient_value)
+
+    def init_uniform_ECM(self):
+        """
+        Initializes the ECM distribution for a uniform distribution.
         """
         for x in range(self.width):
             for y in range(self.height):
+
                 value = np.random.uniform(0,1)
-                self.ecm_layer.set_cell((x,y), value)
-                if x == 0 or x == self.width - 1 or y == 0 or y == self.height - 1:
-                    self.nutrient_layer.set_cell((x,y), value=1)
-                else:
-                    nutrient_value = np.random.uniform(0,1)
-                    self.nutrient_layer.set_cell((x,y), nutrient_value)
-    
-    def init_vor_grid(self):
+                self.ecm_layer.set_cell((x, y), value)     
+
+    def init_voronoi_ECM(self):
         """
-        Initializes the ECM and nutrient field for a voronoi tesselation.
+        Initializes the ECM for a voronoi tesselation.
         """
         num_seed_points = 10
         
@@ -108,15 +127,6 @@ class TumorGrowth(Model):
             value = densities[seed_point_regions[i]]
             self.ecm_layer.set_cell(grid[i], value)
 
-
-        for x in range(self.width):
-            for y in range(self.height):
-                if x == 0 or x == self.width - 1 or y == 0 or y == self.height - 1:
-                    self.nutrient_layer.set_cell((x,y), value=1)
-                else:
-                    nutrient_value = np.random.uniform(0,1)
-                    self.nutrient_layer.set_cell((x,y), nutrient_value)
-
     def add_agent(self, state, id, pos):
         """
         Create new agent and update agent distribution.
@@ -132,7 +142,6 @@ class TumorGrowth(Model):
         self.grid.place_agent(tumorcell, pos)
         self.N_T[pos] += 1
         self.number_births += 1
-        self.scheduler.add(tumorcell)
     
     def displace_agent(self, agent: TumorCell, new_pos):
         """
@@ -184,7 +193,7 @@ class TumorGrowth(Model):
         Returns:
             (int): Updated nutrient concentration in grid cell
         """
-        # This equation breaks if you don't update after each grid visited and if you dont move from x,y = 0,0 to x,y max (when quation about this ask thomas or kattelijn)
+        # This equation breaks if you don't update after each grid visited and if you dont move from x,y = 0,0 to x,y max (when question about this ask thomas or kattelijn)
         part1 = (1 - self.k * N_t * self.tau - 2 * self.lam) / (1 + 2 * self.lam) * self.nutrient_layer.data[x, y]
         part2 = self.lam / (1 + 2 * self.lam)
         part3 = self.nutrient_layer.data[x + 1, y] + self.nutrient_layer.data[x, y + 1] + self.nutrient_layer.data[x - 1, y] + self.nutrient_layer.data[x, y - 1]
@@ -225,8 +234,7 @@ class TumorGrowth(Model):
         # maar miss maakt het niet uit omdat ze nu in random volgorde bewegen..
 
         for agent in self.agents.shuffle():
-            if agent.state != 'necrotic':
-                agent.step(self.nutrient_layer)
+            agent.step()
 
     def count_states(self):
         """
@@ -262,7 +270,6 @@ class TumorGrowth(Model):
         self.cell_step()
         # count number of cells of each state
         self.count_states()
-
 
     def run_model(self):
         """

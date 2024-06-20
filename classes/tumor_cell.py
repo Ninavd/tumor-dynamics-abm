@@ -18,7 +18,6 @@ class TumorCell(Agent):
         self.seed = seed
         np.random.seed(self.seed)
         
-        # self.theta = 0.2
         self.nutrient_threshold = 0.02
 
     def generate_next_state(self, nutrient_score):
@@ -32,12 +31,6 @@ class TumorCell(Agent):
         probability_of_invasion = self.probability_invasion(nutrient_score)
         normalized_proliferate = probability_of_proliferate / (probability_of_proliferate + probability_of_invasion)
         normalized_invasion = 1 - normalized_proliferate
-
-        print('probability_of_proliferate: ', probability_of_proliferate)
-        print('probability_of_invasion: ', probability_of_invasion)
-        print('normalized_proliferate: ', normalized_proliferate)
-        print('normalized_invasion: ', normalized_invasion)
-        print('-------')
 
         random_value = np.random.random()
         if random_value < normalized_proliferate:
@@ -56,9 +49,8 @@ class TumorCell(Agent):
         assert which in ['invasive', 'proliferate'], 'which must be invasive or proliferate' 
         proliferate = (which == 'proliferate')
         theta = self.model.theta_p if proliferate else self.model.theta_i
-        left = e**(-(nutrient_score / (self.get_N_T() * theta))**2)
+        left = e**(-(nutrient_score / (self.model.N_T[self.pos] * theta))**2)
         left = 1 - left if proliferate else left
-        print('left: ',  left)
         
         right = 1
         neighboring_cells = self.model.grid.get_neighbors(self.pos, moore=True, include_center=True if proliferate else False) 
@@ -68,7 +60,7 @@ class TumorCell(Agent):
                 right *= 1 + self.model.app if proliferate else 1 + self.model.bip
             elif neighbor.state == 'invasive' and neighbor != self: 
                 right *= 1 + self.model.api if proliferate else 1 + self.model.bii
-        print('right:', right)
+        
         return left * right
 
     def probability_proliferate(self, nutrient_score):
@@ -78,9 +70,7 @@ class TumorCell(Agent):
         Args:
             nutrient_score (float): nutrient concentration in current cell.
         """
-        a = self.p_proliferate_invasive(nutrient_score, which='proliferate')
-        # print("proliferate probability: ", a)
-        return a
+        return self.p_proliferate_invasive(nutrient_score, which='proliferate')
 
     def probability_invasion(self, nutrient_score):
         """
@@ -89,53 +79,39 @@ class TumorCell(Agent):
         Args:
             nutrient_score (float): nutrient concentration in current cell.
         """
-        b = self.p_proliferate_invasive(nutrient_score, which='invasive')
-        # print('invasion: probability: ', b)
-        return b
+        return self.p_proliferate_invasive(nutrient_score, which='invasive')
     
-    def step(self, nutrient_grid):
+    def step(self):
         """
         Exhibit proliferative or invasive behavior.
         """
         self.state = self.next_state
+        best_cell = self.get_best_neighbor_site(self.model.nutrient_layer)
+
         if self.state == 'invasive':
-            self.invade(nutrient_grid)
+            self.invade(best_cell)
         elif self.state == 'proliferating':
-            self.proliferate(nutrient_grid)
-        
-    def invade(self, nutrient_grid):
+            self.proliferate(best_cell) 
+
+    def invade(self, best_cell):
         """
         Migrate to neighboring site if possible.
         """
-        best_cell = self.get_best_neighbor_site(nutrient_grid)
         self.model.displace_agent(self, new_pos=best_cell) # TODO: move cells simultaneously?
 
-    def proliferate(self, nutrient_grid):
+    def proliferate(self, best_cell):
         """
         Create daughter cell and place on grid.
         """
-        best_cell = self.get_best_neighbor_site(nutrient_grid)
         self.model.add_agent('proliferating', self.model.next_id(), best_cell)
 
     def die(self):
         """
-        State of tumor cell is set to necrotic.
+        State of tumor cell is set to necrotic and agent is removed.
         """
         self.state = 'necrotic'
-        self.model.scheduler.remove(self)
         self.model.grid.remove_agent(self)
         self.remove()
-    
-    def get_N_T(self):
-        """
-        Number of living tumour cells at current position.
-        """
-        N_T = 0
-        for cell in self.model.grid.get_cell_list_contents(self.pos):
-            if cell.state != 'necrotic':
-                N_T += 1
-        
-        return N_T
     
     def get_best_neighbor_site(self, nutrient_grid) -> tuple[int, int]:
         """
