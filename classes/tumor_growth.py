@@ -13,13 +13,19 @@ from helpers import save_timestamp_metadata
 
 np.set_printoptions(threshold=sys.maxsize)
 
+def number_of_cells(Model):
+    total = "to_be_continued"
+
 
 class TumorGrowth(Model):
     '''
     Tumor Growth Model
     '''
-    def __init__(self, height = 201, width = 201, steps = 1000, D= 1*10**-4, k = 0.02, gamma = 5*10**-4, phi_c= 0.02, theta_p=0.2, theta_i=0.2, app=-0.1, api=-0.02, bip=0.02, bii=0.1, seed = 913, distribution= 'uniform'):
-
+    def __init__(self, height = 201, width = 201, steps = 1000,
+                D= 1*10**-4, k = 0.02, gamma = 5*10**-4, phi_c= 0.02,
+                theta_p=0.2, theta_i=0.2, app=-0.1, api=-0.02, bip=0.02, bii=0.1, 
+                seed = 913, distribution= 'uniform'):
+        
         super().__init__()
 
         self.height = height
