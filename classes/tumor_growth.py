@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from classes.tumor_cell import TumorCell
 from scipy.spatial import cKDTree
 import sys
+import time
 np.set_printoptions(threshold=sys.maxsize)
 from scipy.spatial import Voronoi
 from helpers import save_timestamp_metadata
@@ -18,7 +19,7 @@ class TumorGrowth(Model):
     '''
     Tumor Growth Model
     '''
-    def __init__(self, payoff, height = 401, width = 401, seed = np.random.randint(1000), distribution= 'uniform'):
+    def __init__(self, payoff, height = 201, width = 201, seed = np.random.randint(1000), distribution= 'uniform'):
         # height and width still to be adjusted for now smaller values
         super().__init__()
 
@@ -148,7 +149,7 @@ class TumorGrowth(Model):
         Update ECM. Tumor cells attack and lower the ECM.
         """
         # select cells with non-zero ECM
-        active_cells = self.ecm_layer.select_cells(lambda data: data != 0)
+        active_cells = self.nutrient_layer.select_cells(lambda data: data != 0)
         
         # degrade ECM
         for x, y in active_cells:
@@ -195,10 +196,10 @@ class TumorGrowth(Model):
         for agent in living_agents:
             phi = self.nutrient_layer.data[agent.pos]
             if phi < self.phi_c:
-                agent.die()
                 self.number_deaths += 1
                 self.N_T[agent.pos] -= 1
                 self.Nec[agent.pos] += 1
+                agent.die()
 
     def new_state(self):
         """
@@ -232,20 +233,16 @@ class TumorGrowth(Model):
         """
         count_proliferating = 0
         count_invasive = 0
-        count_necrotic = 0
     
-        for contents, _ in self.grid.coord_iter():
-            for agent in contents:
-                if agent.state == 'proliferating':
-                    count_proliferating += 1
-                elif agent.state =='invasive':
-                    count_invasive += 1
-                elif agent.state =='necrotic':
-                    count_necrotic += 1
-            
+        for agent in self.agents:
+            if agent.state == 'proliferating':
+                count_proliferating += 1
+            elif agent.state =='invasive':
+                count_invasive += 1
+
         self.proliferating_cells.append(count_proliferating)
         self.invasive_cells.append(count_invasive)
-        self.necrotic_cells.append(count_necrotic)
+        self.necrotic_cells.append(self.number_deaths)
 
     def step(self):
         """

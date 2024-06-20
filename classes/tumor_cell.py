@@ -113,6 +113,8 @@ class TumorCell(Agent):
         State of tumor cell is set to necrotic.
         """
         self.state = 'necrotic'
+        self.model.grid.remove_agent(self)
+        self.remove()
     
     def get_N_T(self):
         """
@@ -134,7 +136,7 @@ class TumorCell(Agent):
         lowest_amount = sys.maxsize
 
         for ecm_0 in zero_ECM_sites:
-            number_of_agents = len(self.model.grid.get_cell_list_contents(ecm_0))
+            number_of_agents = self.model.N_T[ecm_0] + self.model.Nec[ecm_0]
 
             # prefer cells with low tumor density
             if number_of_agents < lowest_amount:
