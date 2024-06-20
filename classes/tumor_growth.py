@@ -13,9 +13,6 @@ from helpers import save_timestamp_metadata
 
 np.set_printoptions(threshold=sys.maxsize)
 
-def number_of_cells(Model):
-    total = "to_be_continued"
-
 
 class TumorGrowth(Model):
     '''
@@ -88,6 +85,9 @@ class TumorGrowth(Model):
 
         # save initial state
         self.save_iteration_data() 
+
+        self.running = True
+        self.datacollector = DataCollector(model_reporters={"Number Of Cells": lambda m: len(m.agents)})
 
     def init_nutrient_layer(self):
         """
