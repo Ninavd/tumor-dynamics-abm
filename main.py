@@ -1,4 +1,5 @@
 import argparse
+import numpy as np
 from classes.tumor_growth import TumorGrowth
 from classes.tumor_cell import TumorCell
 from classes.tumor_visualizations import TumorVisualization
@@ -8,9 +9,9 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def main(steps, L, seed, payoff, voroni, summary, save, show_plot):
     
-    model = TumorGrowth(payoff, L, L, seed, distribution='voroni' if voroni else 'uniform')
+    model = TumorGrowth(steps=steps, app=payoff[0][0], api=payoff[0][1], bip=payoff[1][0], bii=payoff[1][1], width=L, height=L, seed=seed, distribution='voroni' if voroni else 'uniform')
 
-    model.run_simulation(steps=steps)
+    model.run_model()
     
     if summary:
         print(
@@ -45,8 +46,8 @@ if __name__ == "__main__":
 
     # adding arguments
     parser.add_argument("n_steps", help="max number of time steps used in simulation", default=1000, type=int)
-    parser.add_argument("L_grid", help="Width of grid in number of cells", default=1001, type=int)
-    parser.add_argument("-s", "--seed", help="provide seed of simulation", default=913, type=int)
+    parser.add_argument("L_grid", help="Width of grid in number of cells", default=201, type=int)
+    parser.add_argument("-s", "--seed", help="provide seed of simulation", default=np.random.randint(1000), type=int)
     parser.add_argument("-api", "--alpha_pi", help="proliferative probability change when encountering an invasive cell", default=-0.02, type=float)
     parser.add_argument("-app", "--alpha_pp", help="proliferative probability change when encountering an proliferative cell", default=-0.1, type=float)
     parser.add_argument("-bii", "--beta_ii", help="invasive probability change when encountering an invasive cell", default=0.1, type=float)

@@ -18,9 +18,7 @@ class TumorCell(Agent):
         self.seed = seed
         np.random.seed(self.seed)
         
-        self.app, self.api = self.model.payoff[0][0], self.model.payoff[0][1]
-        self.bii, self.bip = self.model.payoff[1][0], self.model.payoff[1][1]
-        self.theta = 0.2
+        # self.theta = 0.2
         self.nutrient_threshold = 0.02
 
     def generate_next_state(self, nutrient_score):
@@ -51,8 +49,8 @@ class TumorCell(Agent):
         """
         assert which in ['invasive', 'proliferate'], 'which must be invasive or proliferate' 
         proliferate = (which == 'proliferate')
-
-        left = e**(-(nutrient_score / (self.get_N_T() * self.theta))**2)
+        theta = self.model.theta_p if proliferate else self.model.theta_i
+        left = e**(-(nutrient_score / (self.get_N_T() * theta))**2)
         left = 1 - left if proliferate else left
         
         right = 1
@@ -60,9 +58,9 @@ class TumorCell(Agent):
         
         for neighbor in neighboring_cells:
             if neighbor.state == 'proliferating' and neighbor != self:
-                right *= 1 + self.app if proliferate else 1 + self.bip
+                right *= 1 + self.model.app if proliferate else 1 + self.model.bip
             elif neighbor.state == 'invasive' and neighbor != self: 
-                right *= 1 + self.api if proliferate else 1 + self.bii
+                right *= 1 + self.model.api if proliferate else 1 + self.model.bii
 
         return left * right
 

@@ -3,7 +3,7 @@ import json
 from mesa import Model
 from mesa.space import MultiGrid, PropertyLayer 
 from mesa.datacollection import DataCollector
-from mesa.time import RandomActivation
+from mesa.time import SimultaneousActivation
 import numpy as np
 from math import e
 import matplotlib.pyplot as plt
@@ -19,18 +19,19 @@ class TumorGrowth(Model):
     '''
     Tumor Growth Model
     '''
-    def __init__(self, payoff, height = 201, width = 201, seed = np.random.randint(1000), distribution= 'uniform'):
+    def __init__(self, height = 201, width = 201, steps = 1000, D= 1*10**-4, k = 0.02, gamma = 5*10**-4, phi_c= 0.02, theta_p=0.2, theta_i=0.2, app=-0.1, api=-0.02, bip=0.02, bii=0.1, seed = 913, distribution= 'uniform'):
         # height and width still to be adjusted for now smaller values
         super().__init__()
-
-        self.payoff = payoff
+        self.app, self.api = app, api
+        self.bip, self.bii = bip, bii
         self.height = height
         self.width = width
+        self.steps = steps
         self.seed = seed
         self.distribution = distribution
         np.random.seed(self.seed)
-
-        self.center = int((height - 1) /2)
+        self.center = int((self.height - 1) /2)
+        self.scheduler = SimultaneousActivation(self, self.agents)
 
         self.ecm_layer = PropertyLayer("ECM", self.height, self.width, default_value=np.float64(0.0))
         self.nutrient_layer = PropertyLayer("Nutrients", self.height, self.width, default_value=np.float64(1.0))
@@ -45,13 +46,15 @@ class TumorGrowth(Model):
 
         self.N_T = np.zeros((self.height, self.width))
         self.Nec = np.zeros((self.height, self.width))
-        self.k = 0.02
+        self.k = k
         self.tau = 1
-        self.gamma = 5*10**-4
-        self.D = 1*10**-4
+        self.gamma = gamma
+        self.D = D
         self.h = 0.1
+        self.theta_p = theta_p
+        self.theta_i = theta_i
         self.lam = self.D * self.tau / (self.h**2)
-        self.phi_c = 0.02
+        self.phi_c = phi_c
         self.number_births = 0
         self.number_deaths = 0
 
@@ -262,12 +265,13 @@ class TumorGrowth(Model):
         # count number of cells of each state
         self.count_states()
 
-    def run_simulation(self, steps=10):
+
+    def run_model(self):
         """
         Grow tumour for number of steps or until tumour touches border.
         """
-        for i in range(steps):
-            print(f'Running... step: {i+1}/{steps}', end='\r')
+        for i in range(self.steps):
+            print(f'Running... step: {i+1}/{self.steps}', end='\r')
             if self.touches_border():
                 print("\n Simulation stopped: Tumor touches border")
                 return
