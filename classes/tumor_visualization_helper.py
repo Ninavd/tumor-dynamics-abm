@@ -81,7 +81,7 @@ class TumorVisualizationHelper():
         variance_r = np.sum((radii - r0) ** 2)
         return variance_r
     
-    def cells_at_tumor_surface(self, N_t, mask):
+    def cells_at_tumor_surface(self, mask):
         """
         Compute the number of cells at the tumor surface.
 
@@ -90,7 +90,7 @@ class TumorVisualizationHelper():
             iteration (int): Iteration number.
 
         Returns:
-            int: Number of cells at the tumor surface.
+            int: Number of grid cells at the tumor surface.
         """
         edges_matrix = self.get_edges_of_a_mask(mask)
         return np.sum(edges_matrix), edges_matrix

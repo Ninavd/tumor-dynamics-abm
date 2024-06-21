@@ -16,9 +16,9 @@ problem = ProblemSpec({
     'bounds': [[10**(-5), 10**(-3)], [0.01, 0.05], [5*10**(-5), 5*10**(-3)], [0.01, 0.05], [0.1, 0.5], [0.1, 0.5], [-0.95, 0], [-0.05, -0.01], [0.01, 0.05], [0, 0.95]]
 })
 
-replicates = 10 # NOTE: not used rn.. idk what it should be used for tbh
+distinct_samples = 128 #1024 # NOTE: small value for testing, used to be 16 -> debraj said do 128, maybe leave out reduce param space to five
+grid_size = 150
 steps = 1000
-distinct_samples = 128 # NOTE: small value for testing, used to be 16 -> debraj said do 128, maybe leave out reduce param space to five
 # NOTE: generate 1024 samples together, run in batches and on parallel computers to generate results
 
 def run_model(param_values, **kwargs):
@@ -39,20 +39,21 @@ def run_model(param_values, **kwargs):
             api = params[7],
             bip = params[8],
             bii = params[9],
-            steps = 5000, # NOTE: choose 100 for testing
-            height = 201, # choose 51 for testing
-            width = 201   # choose 51 for testing
+            steps = steps, # NOTE: choose 100 for testing
+            height = grid_size, # choose 51 for testing
+            width = grid_size   # choose 51 for testing
         )
         results[i] = model.run_model()
         print('\n', i)
     return results
 
+
 # generate parameter samples
-param_values = problem.sample(sobol.sample, distinct_samples)
+problem = problem.sample(sobol.sample, distinct_samples)
 
 # run model with the samples in parallel
-problem.evaluate(run_model, nprocs=16) # NOTE: can increase nprocs even more maybe
-# set saved results in problem object
+problem.evaluate(run_model, steps=steps, grid_size=grid_size, nprocs=8) # NOTE: can increase nprocs even more maybe
+
 Si_tumor = problem.analyze(SALib.analyze.sobol.analyze, calc_second_order=False, print_to_console=False)
 axes = Si_tumor.plot()
 
@@ -83,6 +84,3 @@ print(total, type(total))
 #     ax.plot()
 
 plt.show()
-    
-
-# df = Si_tumor.analysis.to_df()
