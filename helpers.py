@@ -1,9 +1,9 @@
 import json 
 import os 
 
-def save_timestamp_metadata(timestamp, self):
-    app, api = self.payoff[0][0], self.payoff[0][1]
-    bii, bip = self.payoff[0][0], self.payoff[1][1] 
+def save_timestamp_metadata(self, timestamp):
+    app, api = self.app, self.api
+    bii, bip = self.bii, self.bip
 
     metadata = {
         "run_id":timestamp,
