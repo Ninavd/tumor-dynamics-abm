@@ -5,6 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from itertools import combinations
 from classes.tumor_growth import TumorGrowth
+import pickle
+import time
 
 import pandas as pd
 import warnings
@@ -49,17 +51,27 @@ def run_model(param_values, **kwargs):
 
 
 # generate parameter samples
-problem = problem.sample(sobol.sample, distinct_samples)
+problem = problem.sample(sobol.sample, distinct_samples, calc_second_order=False)
 
 # run model with the samples in parallel
-problem.evaluate(run_model, steps=steps, grid_size=grid_size, nprocs=8) # NOTE: can increase nprocs even more maybe
+problem.evaluate(run_model, steps=steps, grid_size=grid_size, nprocs=12) # NOTE: can increase nprocs even more maybe
+
 
 Si_tumor = problem.analyze(SALib.analyze.sobol.analyze, calc_second_order=False, print_to_console=False)
+time_stamp = str(time.time()).split('.')[0]
+# pickle(f'Si_tumor_{time_stamp}.pkl', Si_tumor)
+with open(f'Si_tumor_{time_stamp}.pickle', 'wb') as file:
+    # Serialize and save the object to the file
+    pickle.dump(Si_tumor, file)
+with open(f'problem_{time_stamp}.pickle', 'wb') as file:
+    # Serialize and save the object to the file
+    pickle.dump(problem, file)
+
 axes = Si_tumor.plot()
 
-total, first, second = Si_tumor.to_df() # returns list of dfs i think..
+total, first = Si_tumor.to_df() # returns list of dfs i think..
 print(total, type(total)) 
-
+total.to_csv('total.csv')
 # from SALib.plotting.bar import plot as barplot
 # def plot_result(result):
 #     Si_df = result.to_df()
