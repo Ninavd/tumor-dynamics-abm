@@ -44,9 +44,11 @@ def main(steps, L, seed, payoff, voroni, summary, save, show_plot):
     if show_plot:
         vis = TumorVisualization(model)
         # vis.plot_cell_types()
-        # vis.plot_all()
+        vis.plot_all()
+        vis.plot_radial_distance()
         # vis.plot_proportion_cell_types()
         vis.plot_roughness()
+    
 
 if __name__ == "__main__":
     # set-up parsing command line arguments

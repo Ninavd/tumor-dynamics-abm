@@ -6,7 +6,7 @@ from classes.tumor_visualization_helper import TumorVisualizationHelper as TVH
 class TumorVisualization():
     def __init__(self, model) -> None:
         self.model = model
-        self.TVH = TVH()
+        self.TVH = TVH(model)
 
     def show_ecm(self, position = -1, show=True):
         """
@@ -147,12 +147,8 @@ class TumorVisualization():
         """
         Plot the radial distance of the tumor from the center of the grid.
         """
-        radial_distance = []
-        for i in range(len(self.model.N_Ts)):
-            mask = self.model.N_Ts[i] > 0
-            geographical_center = self.TVH.find_geographical_center(mask)
-            edges_of_mask = self.TVH.get_edges_of_a_mask(mask)
-            radial_distance.append(self.TVH.calculate_average_distance(edges_of_mask, geographical_center))
+        # tvh = TVH(self.model)
+        radial_distance = self.TVH.calculate_radial_distance()
         plt.plot(radial_distance)
         plt.title('Average Radial Distance form Tumor Center to Tumor Edge')
         plt.show()
@@ -161,24 +157,13 @@ class TumorVisualization():
         """
         Plot the roughness of the tumor.
         """
-        roughness_values = []
-
-        for i in range(len(self.model.N_Ts)):
-            mask = (self.model.N_Ts[i] + self.model.Necs[i]) > 0
-            N_r, edges_matrix = self.TVH.cells_at_tumor_surface(mask)
-            center = self.TVH.find_geographical_center(mask)
-            variance = self.TVH.compute_variance_of_roughness(edges_matrix, center)
-            if N_r == 0:
-                roughness_values.append(0)
-            else: 
-                roughness = np.sqrt(variance / N_r)
-                roughness_values.append(roughness)
+        roughness_values = self.TVH.calculate_roughness()
         plt.plot(roughness_values)
         plt.title('Roughness of the Tumor')
         plt.xlabel('Iteration')
         plt.ylabel(r'Roughness $\sqrt{ \frac{1}{N_T} \sum_{i=1}^{N} (r_i-r_0)^{2}}$')
         plt.show()
-    
+
     def plot_cell_types(self):
         fig, ax1 = plt.subplots()
         ax1.plot(self.model.proliferating_cells, label = 'Proliferative Cells')

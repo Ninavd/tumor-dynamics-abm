@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import copy
 
 class TumorVisualizationHelper():
-    def __init__(self):
-        pass
+    def __init__(self, model):
+        self.model = model
 
     def calculate_average_distance(self, mask, center):
         """
@@ -94,3 +94,29 @@ class TumorVisualizationHelper():
         """
         edges_matrix = self.get_edges_of_a_mask(mask)
         return np.sum(edges_matrix), edges_matrix
+
+    def calculate_roughness(self):
+        roughness_values = []
+
+        for i in range(len(self.model.N_Ts)):
+            mask = (self.model.N_Ts[i] + self.model.Necs[i]) > 0
+            N_r, edges_matrix = self.cells_at_tumor_surface(mask)
+            center = self.find_geographical_center(mask)
+            variance = self.compute_variance_of_roughness(edges_matrix, center)
+            if N_r == 0:
+                roughness_values.append(0)
+            else: 
+                roughness = np.sqrt(variance / N_r)
+                roughness_values.append(roughness)
+        
+        return roughness_values
+    
+    def calculate_radial_distance(self):
+        radial_distance = []
+        for i in range(len(self.model.N_Ts)):
+            mask = self.model.N_Ts[i] > 0
+            geographical_center = self.find_geographical_center(mask)
+            edges_of_mask = self.get_edges_of_a_mask(mask)
+            radial_distance.append(self.calculate_average_distance(edges_of_mask, geographical_center))
+
+        return radial_distance

@@ -11,6 +11,7 @@ from scipy.spatial import cKDTree
 
 from classes.tumor_cell import TumorCell
 from helpers import save_timestamp_metadata, select_non_zero
+from classes.tumor_visualization_helper import TumorVisualizationHelper as TVH
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -25,6 +26,7 @@ class TumorGrowth(Model):
                 seed = 913, distribution= 'uniform'):
         
         super().__init__(seed=seed)
+        self.TVH = TVH(self)
 
         self.height = height
         self.width = width
@@ -87,7 +89,7 @@ class TumorGrowth(Model):
         # save initial state
         self.save_iteration_data() 
 
-        # self.datacollector = DataCollector(model_reporters={"Number Of Cells": lambda m: len(m.agents)})
+        # # self.datacollector = DataCollector(model_reporters={"Number Of Cells": lambda m: len(m.agents)})
 
     def init_nutrient_layer(self):
         """
@@ -291,8 +293,10 @@ class TumorGrowth(Model):
             self.step() 
             self.save_iteration_data()
         self.running = False
+        roughness = self.TVH.calculate_roughness()
+        diameter = self.TVH.calculate_radial_distance()
 
-        return len(self.agents)
+        return diameter, #len(self.agents), roughness
     
     def touches_border(self) -> bool:
         """
