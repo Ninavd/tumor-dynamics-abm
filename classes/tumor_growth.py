@@ -293,10 +293,10 @@ class TumorGrowth(Model):
             self.step() 
             self.save_iteration_data()
         self.running = False
-        roughness = self.TVH.calculate_roughness()
-        diameter = self.TVH.calculate_radial_distance()
+        roughness = self.TVH.calculate_roughness()[-1]
+        diameter = self.TVH.calculate_radial_distance()[-1]
 
-        return diameter, #len(self.agents), roughness
+        return diameter, len(self.agents), roughness
     
     def touches_border(self) -> bool:
         """
