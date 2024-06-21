@@ -11,14 +11,15 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 problem = ProblemSpec({
-    'num_vars': 10,
+    'num_vars': 10, # reduce to ~5 using 1st order
     'names': ['D', 'k', 'gamma', 'phi_c', 'theta_p', 'theta_i', 'app', 'api', 'bip', 'bii'],
     'bounds': [[10**(-5), 10**(-3)], [0.01, 0.05], [5*10**(-5), 5*10**(-3)], [0.01, 0.05], [0.1, 0.5], [0.1, 0.5], [-0.95, 0], [-0.05, -0.01], [0.01, 0.05], [0, 0.95]]
 })
 
 replicates = 10 # NOTE: not used rn.. idk what it should be used for tbh
 steps = 1000
-distinct_samples = 2 # NOTE: small value for testing, used to be 16
+distinct_samples = 128 # NOTE: small value for testing, used to be 16 -> debraj said do 128, maybe leave out reduce param space to five
+# NOTE: generate 1024 samples together, run in batches and on parallel computers to generate results
 
 def run_model(param_values, **kwargs):
     """
@@ -38,9 +39,9 @@ def run_model(param_values, **kwargs):
             api = params[7],
             bip = params[8],
             bii = params[9],
-            steps = 100, # NOTE: small value chosen for testing
-            height = 51, # small value chosen for testing
-            width = 51   # small value chosen for testing
+            steps = 5000, # NOTE: choose 100 for testing
+            height = 201, # choose 51 for testing
+            width = 201   # choose 51 for testing
         )
         results[i] = model.run_model()
         print('\n', i)
@@ -51,8 +52,37 @@ param_values = problem.sample(sobol.sample, distinct_samples)
 
 # run model with the samples in parallel
 problem.evaluate(run_model, nprocs=16) # NOTE: can increase nprocs even more maybe
-Si_tumor = problem.analyze(SALib.analyze.sobol.analyze, print_to_console=False)
+# set saved results in problem object
+Si_tumor = problem.analyze(SALib.analyze.sobol.analyze, calc_second_order=False, print_to_console=False)
 axes = Si_tumor.plot()
-print(axes)
+
+total, first, second = Si_tumor.to_df() # returns list of dfs i think..
+print(total, type(total)) 
+
+# from SALib.plotting.bar import plot as barplot
+# def plot_result(result):
+#     Si_df = result.to_df()
+
+#     if isinstance(Si_df, (list, tuple)):
+#         import matplotlib.pyplot as plt  # type: ignore
+
+#         if ax is None:
+#             fig, ax = plt.subplots(1, len(Si_df))
+
+#         for idx, f in enumerate(Si_df):
+#             barplot(f, ax=ax[idx])
+
+#         axes = ax
+#     else:
+#         axes = barplot(Si_df, ax=ax)
+
+#     return axes
+
+# # for ax in axes:
+#     plt.figure()
+#     ax.plot()
+
 plt.show()
-df = Si_tumor.analysis.to_df()
+    
+
+# df = Si_tumor.analysis.to_df()

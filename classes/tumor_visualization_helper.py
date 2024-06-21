@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib.pyplot as plt
+import copy
 
 class TumorVisualizationHelper():
     def __init__(self):
@@ -58,9 +60,10 @@ class TumorVisualizationHelper():
                     if mask[i-1, j] == 0 or mask[i+1, j] == 0 or mask[i, j-1] == 0 or mask[i, j+1] == 0:
                         edges_matrix[i, j] = 1
         # TODO: check to see if it makes more sense to return this as a sparse matrix, as only the edges are highlighted, so it might be sparse enough for large grids? https://stackoverflow.com/a/36971131
+        
         return edges_matrix
     
-    def compute_variance_of_roughness(self, mask, center):
+    def compute_variance_of_roughness(self, edges_matrix, center):
         """
         Computes the roughness of an imperfectly drawn circle.
         
@@ -72,10 +75,10 @@ class TumorVisualizationHelper():
         Returns:
         float: The roughness R of the imperfect circle.
         """
-        edge_points = np.argwhere(mask == 1)
-        radii = np.linalg.norm(edge_points - center, axis=1)
+        edge_points = np.argwhere(edges_matrix == 1)
+        radii = edge_points - center
         r0 = np.mean(radii)
-        variance_r = np.mean((radii - r0) ** 2)
+        variance_r = np.sum((radii - r0) ** 2)
         return variance_r
     
     def cells_at_tumor_surface(self, N_t, mask):
@@ -90,8 +93,4 @@ class TumorVisualizationHelper():
             int: Number of cells at the tumor surface.
         """
         edges_matrix = self.get_edges_of_a_mask(mask)
-        for i in range(mask.shape[0]):
-            for j in range(mask.shape[1]):
-                if edges_matrix[i, j]:
-                    edges_matrix[i, j] = N_t[i, j]
-        return np.sum(edges_matrix)
+        return np.sum(edges_matrix), edges_matrix

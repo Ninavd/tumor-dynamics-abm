@@ -164,16 +164,18 @@ class TumorVisualization():
         roughness_values = []
 
         for i in range(len(self.model.N_Ts)):
-            mask = self.model.N_Ts[i] > 0
-            N_t = self.TVH.cells_at_tumor_surface(self.model.N_Ts[i], mask)
+            mask = (self.model.N_Ts[i] + self.model.Necs[i]) > 0
+            N_r, edges_matrix = self.TVH.cells_at_tumor_surface(self.model.N_Ts[i], mask)
             center = self.TVH.find_geographical_center(mask)
-            variance = self.TVH.compute_variance_of_roughness(mask, center)
-            if N_t == 0:
+            variance = self.TVH.compute_variance_of_roughness(edges_matrix, center)
+            if N_r == 0:
                 roughness_values.append(0)
             else: 
-                roughness = np.sqrt(variance / N_t)
+                roughness = np.sqrt(variance / N_r)
                 roughness_values.append(roughness)
+                print(roughness, type(roughness))
             #print(f"Roughness of the imperfect circle: {roughness}")
+        print(roughness_values)
         plt.plot(roughness_values)
         plt.title('Roughness of the Tumor')
         plt.xlabel('Iteration')

@@ -23,7 +23,7 @@ class TumorGrowth(Model):
                 theta_p=0.2, theta_i=0.2, app=-0.1, api=-0.02, bip=0.02, bii=0.1, 
                 seed = 913, distribution= 'uniform'):
         
-        super().__init__()
+        super().__init__(seed=seed)
 
         self.height = height
         self.width = width
@@ -49,6 +49,9 @@ class TumorGrowth(Model):
         self.lam = self.D * self.tau / (self.h**2)
         self.phi_c = phi_c
         
+        # seed the simulation
+        np.random.seed(self.seed)
+        
         # initialize ECM field
         self.distribution = distribution
         if distribution == 'uniform':
@@ -67,9 +70,6 @@ class TumorGrowth(Model):
 
         # place single proliferative cell in the center
         self.add_agent('proliferating', self.next_id(), (self.center, self.center))
-
-        # seed the simulation
-        np.random.seed(self.seed)
         
         # for recording grid snapshots at every iteration
         self.ecm_layers = []
@@ -86,7 +86,6 @@ class TumorGrowth(Model):
         # save initial state
         self.save_iteration_data() 
 
-        self.running = True
         self.datacollector = DataCollector(model_reporters={"Number Of Cells": lambda m: len(m.agents)})
 
     def init_nutrient_layer(self):

@@ -17,6 +17,7 @@ class TumorCell(Agent):
 
         self.seed = seed
         np.random.seed(self.seed)
+        random.seed(self.seed)
         
         self.nutrient_threshold = 0.02
 
