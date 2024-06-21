@@ -288,7 +288,7 @@ class TumorGrowth(Model):
             if self.touches_border():
                 print("\n Simulation stopped: Tumor touches border")
                 self.running = False
-                return len(self.agents)
+                return diameter, len(self.agents), roughness
             
             self.step() 
             self.save_iteration_data()
