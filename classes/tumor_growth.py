@@ -282,7 +282,7 @@ class TumorGrowth(Model):
         Grow tumour for number of steps or until tumour touches border.
         """
         for i in range(self.steps):
-            print(f'Running... step: {i+1}/{self.steps}', end='\r')
+            print(f'Running... step: {i+1}/{self.steps}         ', end='\r')
 
             if self.touches_border():
                 print("\n Simulation stopped: Tumor touches border")
