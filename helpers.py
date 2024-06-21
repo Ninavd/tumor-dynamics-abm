@@ -75,3 +75,5 @@ def update_metadata():
 
     return metadata
 
+def select_non_zero(data):
+    return data != 0

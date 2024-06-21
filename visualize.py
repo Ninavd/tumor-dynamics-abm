@@ -1,11 +1,14 @@
 import argparse
+import pickle
 
 from classes.tumor_visualizations import TumorVisualization
 from classes.tumor_growth import TumorGrowth
 
 def visualize(run_id, save):
-    model = TumorGrowth(payoff=[[0,0],[0,0]])
-    model.load_simulation_data_from_file(run_id)
+    # model = TumorGrowth(payoff=[[0,0],[0,0]])
+    timestamp = run_id
+    with open(f'save_files/simulation_data_{timestamp}.pickle', 'rb') as f:
+        model = pickle.load(f)
     visualization = TumorVisualization(model)
 
     visualization.plot_all(position=[0, 250, -1])

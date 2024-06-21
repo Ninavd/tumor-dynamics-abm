@@ -2,6 +2,7 @@ import copy
 import numpy as np
 import sys
 import time
+import pickle
 
 from mesa import Model
 from mesa.space import MultiGrid, PropertyLayer 
@@ -9,7 +10,7 @@ from mesa.datacollection import DataCollector
 from scipy.spatial import cKDTree
 
 from classes.tumor_cell import TumorCell
-from helpers import save_timestamp_metadata
+from helpers import save_timestamp_metadata, select_non_zero
 
 np.set_printoptions(threshold=sys.maxsize)
 
@@ -86,7 +87,7 @@ class TumorGrowth(Model):
         # save initial state
         self.save_iteration_data() 
 
-        self.datacollector = DataCollector(model_reporters={"Number Of Cells": lambda m: len(m.agents)})
+        # self.datacollector = DataCollector(model_reporters={"Number Of Cells": lambda m: len(m.agents)})
 
     def init_nutrient_layer(self):
         """
@@ -165,7 +166,7 @@ class TumorGrowth(Model):
         Update ECM. Tumor cells attack and lower the ECM.
         """
         # select cells with non-zero ECM
-        active_cells = self.nutrient_layer.select_cells(lambda data: data != 0)
+        active_cells = self.nutrient_layer.select_cells(select_non_zero)
         
         # degrade ECM
         for x, y in active_cells:
@@ -208,8 +209,7 @@ class TumorGrowth(Model):
         """
         Make agents necrotic if nutrients below threshold.
         """
-        living_agents = self.agents.select(lambda agent: agent.state != 'necrotic')
-        for agent in living_agents:
+        for agent in self.agents:
             phi = self.nutrient_layer.data[agent.pos]
             if phi < self.phi_c:
                 self.number_deaths += 1
@@ -315,31 +315,9 @@ class TumorGrowth(Model):
         Returns:
             string: timestamp of when the files were saved.
         """
-        # Save parameters to a readable txt file
         timestamp = str(time.time()).split('.')[0]
-
-        params = [self.seed, self.height, self.width, self.number_births, self.number_deaths, self.k, 
-            self.tau, self.gamma, self.D, self.h, self.lam, self.phi_c, len(self.N_Ts) - 1]
-        
-        param_names = ["Seed", "Height", "Width", "Total_Number_of_Births", "Total_Number_of_Deaths", 
-            "k", "tau", "gamma", "D", "h", "lam", "phi_c", "Number_Iterations"]
-
-        # save simulation parameters
-        with open(f'save_files/simulation_parameters_{timestamp}.txt', 'w') as f:
-            for value, name in zip(params, param_names):
-                f.write(f"{name}:{value}\n")
-        
-        save_timestamp_metadata(timestamp, self)
-
-        # Save simulation data (ecm data, nutrient data, tumor cell data, deahts and births data to a npy file
-        simulation_data = [self.ecm_layers, self.nutrient_layers, self.N_Ts, self.Necs, self.births, self.deaths]
-        data_names = ['ecm_layers', 'nutrient_layers', 'n_ts', 'necs', 'births', 'deaths']
-        
-        for data, name in zip(simulation_data, data_names):
-            with open(f'save_files/{name}_data_{timestamp}.npy', 'wb') as f:
-                np.save(f, data)
-    
-        print(f"Simulation data saved to file with timestamp: {timestamp}")
+        with open(f'save_files/simulation_data_{timestamp}.pickle', 'wb') as f:
+            pickle.dump(self, f)
         return timestamp
 
     def load_simulation_data_from_file(self, timestamp):
@@ -349,34 +327,6 @@ class TumorGrowth(Model):
             timestamp (string): timestmap that the files were originally saved at (see filename you want to upload to find this value)
         """
         timestamp = str(timestamp)
-        parameter_values = []
-
-        with open(f'save_files/simulation_parameters_{timestamp}.txt', 'r') as f:
-            for line in f:
-                parameter_values.append(line.split(':')[1].split('\n')[0])
-            self.seed = float(parameter_values[0])
-            self.height = float(parameter_values[1])
-            self.width = float(parameter_values[2])
-            self.number_births = float(parameter_values[3])
-            self.number_deaths = float(parameter_values[4])
-            self.k = float(parameter_values[5])
-            self.tau = float(parameter_values[6])
-            self.gamma = float(parameter_values[7])
-            self.D = float(parameter_values[8])
-            self.h = float(parameter_values[9])
-            self.lam = float(parameter_values[10])
-            self.phi_c = float(parameter_values[11])
-
-        with open(f'save_files/ecm_layers_data_{timestamp}.npy', 'rb') as f:
-            self.ecm_layers = np.load(f)
-        with open(f'save_files/nutrient_layers_data_{timestamp}.npy', 'rb') as f:
-            self.nutrient_layers = np.load(f)
-        with open(f'save_files/n_ts_data_{timestamp}.npy', 'rb') as f:
-            self.N_Ts = np.load(f)
-        with open(f'save_files/necs_data_{timestamp}.npy', 'rb') as f:
-            self.Necs = np.load(f)
-        with open(f'save_files/births_data_{timestamp}.npy', 'rb') as f:
-            self.births = np.load(f)
-        with open(f'save_files/deaths_data_{timestamp}.npy', 'rb') as f:
-            self.deaths = np.load(f)
-            
+        with open(f'save_files/simulation_data_{timestamp}.pickle', 'r') as f:
+            model = pickle.load(f)
+        return model
