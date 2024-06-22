@@ -282,20 +282,21 @@ class TumorGrowth(Model):
         """
         Grow tumour for number of steps or until tumour touches border.
         """
-        roughness = self.TVH.calculate_roughness()[-1]
-        diameter = self.TVH.calculate_radial_distance()[-1]
         for i in range(self.steps):
             print(f'Running... step: {i+1}/{self.steps}         ', end='\r')
 
             if self.touches_border():
                 print("\n Simulation stopped: Tumor touches border")
                 self.running = False
+                roughness = self.TVH.calculate_roughness()[-1]
+                diameter = self.TVH.calculate_radial_distance()[-1]
                 return diameter, len(self.agents), roughness
             
             self.step() 
             self.save_iteration_data()
         self.running = False
-
+        roughness = self.TVH.calculate_roughness()[-1]
+        diameter = self.TVH.calculate_radial_distance()[-1]
         return diameter, len(self.agents), roughness
     
     def touches_border(self) -> bool:
