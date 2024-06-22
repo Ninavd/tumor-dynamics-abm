@@ -54,8 +54,8 @@ def run_model(param_values, **kwargs):
 
         timestamp = str(time.time()).split('.')[0]
         model_id = f'{timestamp}_{os.getpid()}_{str(i)}'
-        with open(f'{result_dir}/model_pickles/model_{model_id}.pickle', 'wb') as f:
-            pickle.dump(model, f)
+        # with open(f'{result_dir}/model_pickles/model_{model_id}.pickle', 'wb') as f:
+        #     pickle.dump(model, f)
 
         results[i] = diameter
         
