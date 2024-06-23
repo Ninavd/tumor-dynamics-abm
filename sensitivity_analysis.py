@@ -18,9 +18,9 @@ problem = ProblemSpec({
     'bounds': [[10**(-5), 10**(-3)], [0.01, 0.05], [5*10**(-5), 5*10**(-3)], [0.01, 0.05], [0.1, 0.5], [0.1, 0.5], [-0.95, 0], [-0.05, -0.01], [0.01, 0.05], [0, 0.95]]
 })
 
-distinct_samples = 128 #1024 # NOTE: small value for testing, used to be 16 -> debraj said do 128, maybe leave out reduce param space to five
-grid_size = 101
-steps = 1000
+distinct_samples = 2 #1024 # NOTE: small value for testing, used to be 16 -> debraj said do 128, maybe leave out reduce param space to five
+grid_size = 51
+steps = 100
 result_dir = f'save_files/SA_analysis_{distinct_samples}_distinct_samples'
 # NOTE: generate 1024 samples together, run in batches and on parallel computers to generate results
 
