@@ -42,6 +42,8 @@ class TumorVisualizationHelper():
                 if mask[i, j]:
                     cell = np.array([i, j])
                     weighted_sum += cell
+        if total == 0: # if total is 0, return the center of the mask, prevent division by 0
+            return (mask.shape[0] // 2, mask.shape[1] // 2)
         return tuple(weighted_sum // total)
 
     def get_edges_of_a_mask(self, mask):
