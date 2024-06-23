@@ -61,7 +61,7 @@ def run_model(param_values, **kwargs):
 
         results[i] = diameter
         
-        print('\n', i)
+        print(f'\n run {i}/{param_values.shape[0]} on pid {os.getpid()}')
         for i, key in enumerate(results_dict):
             if key != 'diameter' and key != 'living_agents' and key != 'roughness' and key != 'model_id':
                 results_dict[key].append(params[i])
