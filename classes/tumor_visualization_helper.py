@@ -23,6 +23,8 @@ class TumorVisualizationHelper():
                     cell = np.array([i, j])
                     distance = np.linalg.norm(cell - center)
                     distances.append(distance)
+        if distances == []:
+            return 0
         return np.mean(distances)
     
     def find_geographical_center(self, mask):
@@ -79,6 +81,8 @@ class TumorVisualizationHelper():
         """
         edge_points = np.argwhere(edges_matrix == 1)
         radii = edge_points - center
+        if (radii.shape[0] == 0):
+            return 0
         r0 = np.mean(radii)
         variance_r = np.sum((radii - r0) ** 2)
         return variance_r
