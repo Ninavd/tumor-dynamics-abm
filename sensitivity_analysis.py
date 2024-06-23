@@ -23,12 +23,14 @@ grid_size = 101
 steps = 1000
 result_dir = f'./save_files/SA_analysis_{distinct_samples}_distinct_samples'
 # NOTE: generate 1024 samples together, run in batches and on parallel computers to generate results
+if not os.path.exists(result_dir):
+    os.mkdir(result_dir)
 
 def run_model(param_values, **kwargs):
     """
     Wrapper function to run model when provided with array of params.
     """
-    print(param_values.shape)
+    print(f"run {param_values.shape} on pid {os.getpid()}")
 
     params = ['D', 'k', 'gamma', 'phi_c', 'theta_p', 'theta_i', 'app', 'api', 'bip', 'bii', 'diameter', 'roughness', 'living_agents', 'model_id']
     results_dict = {param:[] for param in params}
