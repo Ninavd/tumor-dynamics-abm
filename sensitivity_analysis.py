@@ -18,9 +18,9 @@ problem = ProblemSpec({
     'bounds': [[10**(-5), 10**(-3)], [0.01, 0.05], [5*10**(-5), 5*10**(-3)], [0.01, 0.05], [0.1, 0.5], [0.1, 0.5], [-0.95, 0], [-0.05, -0.01], [0.01, 0.05], [0, 0.95]]
 })
 
-distinct_samples = 2 #1024 # NOTE: small value for testing, used to be 16 -> debraj said do 128, maybe leave out reduce param space to five
-grid_size = 51
-steps = 100
+distinct_samples = 128 #1024 # NOTE: small value for testing, used to be 16 -> debraj said do 128, maybe leave out reduce param space to five
+grid_size = 101
+steps = 1000
 result_dir = f'./save_files/SA_analysis_{distinct_samples}_distinct_samples'
 # NOTE: generate 1024 samples together, run in batches and on parallel computers to generate results
 
@@ -71,7 +71,7 @@ def run_model(param_values, **kwargs):
     
     results_df = pd.DataFrame(results_dict)
     timestamp = str(time.time()).split('.')[0]
-    results_df.to_csv(f'save_files/cpu_{os.getpid()}_results_steps_{steps}_grid_{grid_size}_params_varied_{param_values.shape[1]}_id_{timestamp}.csv', index=False)
+    results_df.to_csv(f'{result_dir}/cpu_{os.getpid()}_results_steps_{steps}_grid_{grid_size}_params_varied_{param_values.shape[1]}_id_{timestamp}.csv', index=False)
     return results
 
 
@@ -82,13 +82,12 @@ problem = problem.sample(sobol.sample, distinct_samples, calc_second_order=False
 problem.evaluate(run_model, steps=steps, grid_size=grid_size, nprocs=12) # NOTE: can increase nprocs even more maybe
 
 from glob import glob
-directory = './save_files'  # Replace with the directory containing your CSV files
 # NOTE: TODO: REMOVE HARD CODED PARAM COUNT!!!!!!
 pattern = f'*results_steps_{steps}_grid_{grid_size}_params_varied_10_id*'      # Replace with the pattern for matching file names
 output_file = f'{result_dir}/concatenated_results_steps_{steps}_grid_{grid_size}_params_varied_10.csv'
 
 # Find all CSV files in the specified directory matching the pattern
-csv_files = glob(os.path.join(directory, pattern))
+csv_files = glob(os.path.join(result_dir, pattern))
 print(csv_files)
 
 # Print matching files (for debugging)
@@ -101,22 +100,13 @@ concatenated_df = pd.concat((pd.read_csv(f) for f in csv_files), ignore_index=Tr
 concatenated_df.to_csv(output_file, index=False)
 print(f"Concatenated CSV saved as: {output_file}")
 
-for file in csv_files:
-    try:
-        os.remove(file)
-        print(f"Deleted file: {file}")
-    except Exception as e:
-        print(f"Error deleting file {file}: {e}")
-
 Si_tumor = problem.analyze(SALib.analyze.sobol.analyze, calc_second_order=False, print_to_console=False)
 time_stamp = str(time.time()).split('.')[0]
 
 with open(f'{result_dir}/Si_tumor_{time_stamp}.pickle', 'wb') as file:
-    # Serialize and save the object to the file
     pickle.dump(Si_tumor, file)
-# with open(f'problem_{time_stamp}.pickle', 'wb') as file:
-#     # Serialize and save the object to the file
-#     pickle.dump(problem, file)
+with open(f'{result_dir}/problem_{time_stamp}.pickle', 'wb') as file:
+    pickle.dump(problem, file)
 
 axes = Si_tumor.plot()
 
