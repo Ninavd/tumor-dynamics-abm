@@ -10,9 +10,9 @@ import time
 from helpers import save_timestamp_metadata
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-def main(steps, L, seed, payoff, voroni, summary, save, show_plot):
+def main(steps, L, seed, payoff, voronoi, summary, save, show_plot):
     
-    model = TumorGrowth(steps=steps, app=payoff[0][0], api=payoff[0][1], bip=payoff[1][0], bii=payoff[1][1], width=L, height=L, seed=seed, distribution='voronoi' if voroni else 'uniform')
+    model = TumorGrowth(steps=steps, app=payoff[0][0], api=payoff[0][1], bip=payoff[1][0], bii=payoff[1][1], width=L, height=L, seed=seed, distribution='voronoi' if voronoi else 'uniform')
 
     model.run_model()
     
@@ -24,7 +24,7 @@ def main(steps, L, seed, payoff, voroni, summary, save, show_plot):
             * grid size \t - {L}x{L}
             * seed \t \t - {seed}
             * payoff matrix \t - {payoff}
-            * ECM \t\t - {'voroni' if voroni else 'uniform'}
+            * ECM \t\t - {'voronoi' if voronoi else 'uniform'}
             * final #(proliferating) \t - {model.proliferating_cells[-1]}
             * final #(invasive) \t - {model.invasive_cells[-1]}
             * final #(necrotic) \t - {model.necrotic_cells[-1]}
