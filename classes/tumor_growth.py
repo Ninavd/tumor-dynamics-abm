@@ -298,8 +298,10 @@ class TumorGrowth(Model):
             self.save_iteration_data()
 
             if i in [round(self.steps/4), round(self.steps/2), round(3*self.steps/4), self.steps-1]:
-                self.living_cell_distribution.append(self.cell_distribution()[0])
-                self.dead_cell_distribution.append(self.cell_distribution()[1])
+                cell_dist = self.cell_distribution()
+                print(f'Living cells: {len(cell_dist[0])}, Dead cells: {len(cell_dist[1])}')
+                self.living_cell_distribution.append(cell_dist[0])
+                self.dead_cell_distribution.append(cell_dist[1])
         
 
         self.running = False
@@ -310,16 +312,12 @@ class TumorGrowth(Model):
     def cell_distribution(self):
         N_T_distribution = []
         Nec_distribution = []
-        total_cells = np.sum(self.N_Ts[-1]) + np.sum(self.Necs[-1])
         for x in range(len(self.N_Ts[-1])):
             for y in range(len(self.N_Ts[-1])):
                 if self.N_Ts[-1][x, y] != 0:
-                    N_T_distribution.append(self.N_Ts[-1][x, y]/total_cells)
-        for x in range(len(self.Necs[-1])):
-            for y in range(len(self.Necs[-1])):
+                    N_T_distribution.append(self.N_Ts[-1][x, y])
                 if self.Necs[-1][x, y] != 0:
-                    Nec_distribution.append(self.Necs[-1][x,y]/total_cells)
-        
+                    Nec_distribution.append(self.Necs[-1][x,y])
         return N_T_distribution, Nec_distribution
         
     

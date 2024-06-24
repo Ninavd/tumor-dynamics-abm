@@ -13,7 +13,7 @@ class TumorVisualization():
         Plot current ECM density field.
         """
         fig, axs = plt.subplots()
-        im = axs.imshow(self.model.ecm_layers[position], cmap="BuPu")
+        im = axs.imshow(self.model.ecm_layers[position])
         return fig, axs
 
     def show_nutrients(self, position = -1, show=True):
@@ -21,7 +21,7 @@ class TumorVisualization():
         Plot current nutrient concentration field.
         """
         fig, axs = plt.subplots()
-        im = axs.imshow(self.model.nutrient_layers[position], cmap="BuPu")
+        im = axs.imshow(self.model.nutrient_layers[position])
         return fig, axs
     
     def show_tumor(self, position = -1, show=True):
@@ -29,7 +29,7 @@ class TumorVisualization():
         Plot mask of the tumor. Includes necrotic cells.
         """
         fig, axs = plt.subplots()
-        im = axs.imshow(self.model.N_Ts[position], cmap="BuPu")
+        im = axs.imshow(self.model.N_Ts[position])
         return fig, axs
     
     def plot_necrotic_cells(self, position = -1, show=True):
@@ -37,7 +37,7 @@ class TumorVisualization():
         Plot mask of the tumor. Includes necrotic cells.
         """
         fig, axs = plt.subplots()
-        im = axs.imshow(self.model.Necs[position], cmap="BuPu")
+        im = axs.imshow(self.model.Necs[position])
         plt.title(f'Necrotic cell distribution for a {self.model.height}x{self.model.width} Grid at iteration {len(self.model.ecm_layers)-1}')
         #fig.colorbar(axs, fraction=0.046, pad=0.04)  #TODO: colorbar keeps getting errors
         return fig, axs
@@ -54,13 +54,13 @@ class TumorVisualization():
 
         
 
-        tumor_initial_axs = final_axs[0].imshow(tumor_initial_axs.get_images()[0].get_array(), cmap = 'BuPu', vmin=0, vmax=5)
+        tumor_initial_axs = final_axs[0].imshow(tumor_initial_axs.get_images()[0].get_array(), vmin=0, vmax=5)
         final_axs[0].axis("off")
         final_axs[0].set_title('t=0')
-        tumor_middle_axs = final_axs[1].imshow(tumor_middle_axs.get_images()[0].get_array(), cmap = 'BuPu', vmin=0, vmax=5)
+        tumor_middle_axs = final_axs[1].imshow(tumor_middle_axs.get_images()[0].get_array(), vmin=0, vmax=5)
         final_axs[1].set_title(f't={round(steps/2)}')
         final_axs[1].axis("off")
-        tumor_final_axs = final_axs[2].imshow(tumor_final_axs.get_images()[0].get_array(), cmap = 'BuPu', vmin=0, vmax=5)
+        tumor_final_axs = final_axs[2].imshow(tumor_final_axs.get_images()[0].get_array(), vmin=0, vmax=5)
         final_axs[2].set_title(f't={steps}')
         final_axs[2].axis("off")
 
@@ -71,8 +71,11 @@ class TumorVisualization():
         plt.close(tumor_final_fig)
         # final_fig.colorbar(tumor_initial_axs, ax=final_axs[0], fraction=0.046, pad=0.04)
         # final_fig.colorbar(tumor_middle_axs, ax=final_axs[1], fraction=0.046, pad=0.04)
-        final_fig.colorbar(tumor_final_axs, ax=final_axs.ravel().tolist(), shrink = 0.575)
-        plt.suptitle(f'Tumor growth over time for a {self.model.height}x{self.model.width} grid')
+        # im_ratio = data.shape[0]/data.shape[1]
+        im_ratio = 1
+
+        final_fig.colorbar(tumor_final_axs, ax=final_axs.ravel().tolist(), fraction=0.046*im_ratio, pad=0.04)
+        plt.suptitle(f'Tumor Growth Over Time For a {self.model.height}x{self.model.width} Grid')
         plt.show()
 
     def plot_all(self, position = -1):
@@ -94,13 +97,13 @@ class TumorVisualization():
             nutrient_fig, nutrient_axs = self.show_nutrients(position = position)
             tumor_fig, tumor_axs = self.show_tumor(position = position)
 
-            ecm_axs = final_axs[0].imshow(ecm_axs.get_images()[0].get_array(), cmap="BuPu", vmin = 0, vmax = 1)
+            ecm_axs = final_axs[0].imshow(ecm_axs.get_images()[0].get_array(), vmin = 0, vmax = 1)
             final_axs[0].axis("off")
             final_axs[0].set_title('ECM Field Concentration')
-            nutrient_axs = final_axs[1].imshow(nutrient_axs.get_images()[0].get_array(), cmap="BuPu")
+            nutrient_axs = final_axs[1].imshow(nutrient_axs.get_images()[0].get_array())
             final_axs[1].set_title('Nutrient Field Concentration')
             final_axs[1].axis("off")
-            tumor_axs = final_axs[2].imshow(tumor_axs.get_images()[0].get_array(), cmap="BuPu")
+            tumor_axs = final_axs[2].imshow(tumor_axs.get_images()[0].get_array())
             final_axs[2].set_title('Tumor Cell Count')
             final_axs[2].axis("off")
 
@@ -110,16 +113,29 @@ class TumorVisualization():
             final_fig.colorbar(ecm_axs, ax=final_axs[0], fraction=0.046, pad=0.04)
             final_fig.colorbar(nutrient_axs, ax=final_axs[1], fraction=0.046, pad=0.04)
             final_fig.colorbar(tumor_axs, ax=final_axs[2], fraction=0.046, pad=0.04)
-            plt.suptitle(f'ECM, Nutrient, and Tumor Values at Iteration {position%(len(self.model.ecm_layers))} of {len(self.model.ecm_layers)-1} for a {self.model.height}x{self.model.width} Grid')
+            plt.suptitle(f'ECM, Nutrient, and Tumor Values at Iteration {position%(len(self.model.ecm_layers))} of {len(self.model.ecm_layers)-1} For a {self.model.height}x{self.model.width} Grid')
             plt.show()
 
     def plot_distribution(self):
+        total_cells = []
+        for i in [round(self.model.steps/4), round(self.model.steps/2), round(3*self.model.steps/4), self.model.steps-1]:
+            total_cells.append(np.sum(self.model.N_Ts[i]) + np.sum(self.model.Necs[i]))
+        total_cells = np.asarray(total_cells)
+        lcd = np.array(self.model.living_cell_distribution)
+        dcd = np.array(self.model.dead_cell_distribution)
         fig, ax = plt.subplots(1,2)
-        im1 = ax[0].hist(self.model.living_cell_distribution, label='Living cells')
-        im2 = ax[1].hist(self.model.dead_cell_distribution, label='Dead cells')
-        plt.title('Distribution of cells per grid point')
+        print("living", self.model.living_cell_distribution)
+        print('---')
+        print("dead", self.model.dead_cell_distribution)
+        print('---')
+        print("total", total_cells)
+        # im1 = ax[0].hist(np.divide(self.model.living_cell_distribution, total_cells), label='Living cells')
+        # im2 = ax[1].hist(np.divide(self.model.dead_cell_distribution, total_cells), label='Dead cells')
+        im1 = ax[0].hist(lcd/total_cells, label='Living cells')
+        im2 = ax[1].hist(dcd/total_cells, label='Dead cells')
         ax[0].legend()
         ax[1].legend()
+        fig.suptitle('Distribution of cells per grid point')
         plt.show()
 
     def plot_birth_deaths(self):
@@ -191,7 +207,10 @@ class TumorVisualization():
         # tvh = TVH(self.model)
         radial_distance = self.TVH.calculate_radial_distance()
         plt.plot(radial_distance)
-        plt.title('Average Radial Distance form Tumor Center to Tumor Edge')
+        plt.title('Average Radial Distance From Tumor Center to Tumor Edge')
+        plt.xlabel('Iteration')
+        plt.ylabel('Average Radial Distance')
+        plt.grid()
         plt.show()
 
     def plot_roughness(self):
@@ -200,9 +219,10 @@ class TumorVisualization():
         """
         roughness_values = self.TVH.calculate_roughness()
         plt.plot(roughness_values)
-        plt.title('Roughness of the Tumor')
+        plt.title('Roughness of the Tumor Over Time')
         plt.xlabel('Iteration')
-        plt.ylabel(r'Roughness $\sqrt{ \frac{1}{N_T} \sum_{i=1}^{N} (r_i-r_0)^{2}}$')
+        plt.ylabel('Roughness of the Tumor')
+        plt.grid()
         plt.show()
 
     def plot_cell_types(self):
@@ -210,8 +230,10 @@ class TumorVisualization():
         ax1.plot(self.model.proliferating_cells, label = 'Proliferative Cells')
         ax1.plot(self.model.invasive_cells, label = 'Invasive Cells')
         ax1.plot(self.model.necrotic_cells, label = 'Necrotic Cells')
-        ax1.set_xlabel('iteration')
-        ax1.set_ylabel('number of cells')
+        ax1.set_xlabel('Iteration')
+        ax1.set_ylabel('Number of Cells')
+        ax1.set_title('Cell Types Over Time')
+        plt.grid()
         plt.legend()
         plt.show()
 
@@ -223,8 +245,10 @@ class TumorVisualization():
         ax1.plot(np.array(self.model.proliferating_cells)/sum_count, label = 'Proliferative Cells')
         ax1.plot(np.array(self.model.invasive_cells)/sum_count, label = 'Invasive Cells')
         ax1.plot(np.array(self.model.necrotic_cells)/sum_count, label = 'Necrotic Cells')
-        ax1.set_xlabel('iteration')
-        ax1.set_ylabel('fraction of cells')
+        ax1.set_xlabel('Iteration')
+        ax1.set_ylabel('Fraction of Cells')
+        ax1.set_title('Fraction of Cell Types Over Time')
         plt.legend()
+        plt.grid()
         plt.show()
 
