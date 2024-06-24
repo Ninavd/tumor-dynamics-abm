@@ -81,8 +81,8 @@ class TumorGrowth(Model):
         self.Necs = []
         self.births = []
         self.deaths = [] 
-        self.living_cell_distribution = []
-        self.dead_cell_distribution = []
+        # self.living_cell_distribution = []
+        # self.dead_cell_distribution = []
 
         self.proliferating_cells = [1]
         self.invasive_cells = [0]
@@ -297,11 +297,11 @@ class TumorGrowth(Model):
             self.step() 
             self.save_iteration_data()
 
-            if i in [round(self.steps/4), round(self.steps/2), round(3*self.steps/4), self.steps-1]:
-                cell_dist = self.cell_distribution()
-                print(f'Living cells: {len(cell_dist[0])}, Dead cells: {len(cell_dist[1])}')
-                self.living_cell_distribution.append(cell_dist[0])
-                self.dead_cell_distribution.append(cell_dist[1])
+            # if i in [round(self.steps/4), round(self.steps/2), round(3*self.steps/4), self.steps-1]:
+            #     cell_dist = self.cell_distribution()
+            #     print(f'Living cells: {len(cell_dist[0])}, Dead cells: {len(cell_dist[1])}')
+            #     self.living_cell_distribution.append(cell_dist[0])
+            #     self.dead_cell_distribution.append(cell_dist[1])
         
 
         self.running = False
@@ -309,17 +309,26 @@ class TumorGrowth(Model):
         diameter = self.TVH.calculate_radial_distance()[-1]
         return diameter, len(self.agents), roughness, self.steps
 
-    def cell_distribution(self):
-        N_T_distribution = []
-        Nec_distribution = []
-        for x in range(len(self.N_Ts[-1])):
-            for y in range(len(self.N_Ts[-1])):
-                if self.N_Ts[-1][x, y] != 0:
-                    N_T_distribution.append(self.N_Ts[-1][x, y])
-                if self.Necs[-1][x, y] != 0:
-                    Nec_distribution.append(self.Necs[-1][x,y])
-        return N_T_distribution, Nec_distribution
-        
+    def cell_distribution(self, iteration: int):
+        """
+        return cell counts for every grid cell as 2d array
+
+        Args:
+            iteration: which state to use for calculation.
+        """
+        # N_T_distribution = []
+        # Nec_distribution = []
+
+        # for x in range(len(self.N_Ts[iteration])):
+        #     for y in range(len(self.N_Ts[iteration])):
+        #         if self.N_Ts[iteration][x, y] != 0:
+        #             N_T_distribution.append(self.N_Ts[iteration][x, y])
+        #         if self.Necs[iteration][x, y] != 0:
+        #             Nec_distribution.append(self.Necs[iteration][x,y])
+        # return N_T_distribution, Nec_distribution
+        N_T = self.N_Ts[iteration]
+        Nec = self.Necs[iteration]
+        return N_T[N_T != 0], Nec[Nec != 0]
     
     def touches_border(self) -> bool:
         """
