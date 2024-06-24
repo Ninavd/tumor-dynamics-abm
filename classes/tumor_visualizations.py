@@ -122,39 +122,24 @@ class TumorVisualization():
             living_distr, dead_distr = self.model.cell_distribution(iteration = i)
             dead_distributions.append(dead_distr)
             living_distributions.append(living_distr)
-        
-        plt.subplot(121)
-        plt.title('dead')
-        for i, distr in enumerate(dead_distributions):
-            plt.hist(np.array(distr).flatten(), label=f't={time_points[i]}', histtype='step')
-        plt.legend()
 
-        plt.subplot(122)
-        plt.title('living')
-        for i, distr in enumerate(living_distributions):
-            plt.hist(np.array(dead_distr).flatten(), label=f't={i}', histtype='step')
-        plt.legend()
+        names = ['dead', 'living']
+        distributions = [dead_distributions, living_distributions]
+        for i in range(2):
+
+            plt.subplot(121 + i)
+            plt.title(names[i])
+
+            for i, distr in enumerate(distributions[i]):
+                if len(distr) == 0:
+                    continue
+                d = np.diff(np.unique(distr)).min()
+                left_of_first_bin = distr.min() - float(d)/2
+                right_of_last_bin = distr.max() + float(d)/2
+                plt.hist(np.array(distr).flatten(), np.arange(left_of_first_bin, right_of_last_bin + d), d, label=f't={time_points[i]}', histtype='step')
+            plt.legend()
+
         plt.show()
-            # total_cells.append(np.sum(self.model.N_Ts[i]) + np.sum(self.model.Necs[i]))
-        # total_cells = np.asarray(total_cells)
-        # lcd = np.array(self.model.living_cell_distribution)
-        # dcd = np.array(self.model.dead_cell_distribution)
-
-        
-        # fig, ax = plt.subplots(1,2)
-        # print("living", self.model.living_cell_distribution)
-        # print('---')
-        # print("dead", self.model.dead_cell_distribution)
-        # print('---')
-        # print("total", total_cells)
-        # # im1 = ax[0].hist(np.divide(self.model.living_cell_distribution, total_cells), label='Living cells')
-        # # im2 = ax[1].hist(np.divide(self.model.dead_cell_distribution, total_cells), label='Dead cells')
-        # im1 = ax[0].hist(lcd/total_cells, label='Living cells')
-        # im2 = ax[1].hist(dcd/total_cells, label='Dead cells')
-        # ax[0].legend()
-        # ax[1].legend()
-        # fig.suptitle('Distribution of cells per grid point')
-        # plt.show()
 
     def plot_birth_deaths(self):
         birth_rel_death = [(self.model.births[i]) /(self.model.births[i] + self.model.deaths[i]) for i in range(len(self.model.births))]
