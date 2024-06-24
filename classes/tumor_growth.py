@@ -81,6 +81,8 @@ class TumorGrowth(Model):
         self.Necs = []
         self.births = []
         self.deaths = [] 
+        self.living_cell_distribution = []
+        self.dead_cell_distribution = []
 
         self.proliferating_cells = [1]
         self.invasive_cells = [0]
@@ -116,7 +118,7 @@ class TumorGrowth(Model):
         """
         Initializes the ECM for a voronoi tesselation.
         """
-        num_seed_points = 10
+        num_seed_points = round(self.height/2)
         
         seed_points = np.random.rand(num_seed_points, 2)
         seed_points[:, 0] *= self.width
@@ -283,21 +285,43 @@ class TumorGrowth(Model):
         Grow tumour for number of steps or until tumour touches border.
         """
         for i in range(self.steps):
-            # print(f'Running... step: {i+1}/{self.steps}         ', end='\r')
+            print(f'Running... step: {i+1}/{self.steps}         ', end='\r')
 
             if self.touches_border():
-                # print("\n Simulation stopped: Tumor touches border")
+                print("\n Simulation stopped: Tumor touches border")
                 self.running = False
                 roughness = self.TVH.calculate_roughness()[-1]
                 diameter = self.TVH.calculate_radial_distance()[-1]
-                return diameter, len(self.agents), roughness
+                return diameter, len(self.agents), roughness, i
             
             self.step() 
             self.save_iteration_data()
+
+            if i in [round(self.steps/4), round(self.steps/2), round(3*self.steps/4), self.steps-1]:
+                self.living_cell_distribution.append(self.cell_distribution()[0])
+                self.dead_cell_distribution.append(self.cell_distribution()[1])
+        
+
         self.running = False
         roughness = self.TVH.calculate_roughness()[-1]
         diameter = self.TVH.calculate_radial_distance()[-1]
-        return diameter, len(self.agents), roughness
+        return diameter, len(self.agents), roughness, self.steps
+
+    def cell_distribution(self):
+        N_T_distribution = []
+        Nec_distribution = []
+        total_cells = np.sum(self.N_Ts[-1]) + np.sum(self.Necs[-1])
+        for x in range(len(self.N_Ts[-1])):
+            for y in range(len(self.N_Ts[-1])):
+                if self.N_Ts[-1][x, y] != 0:
+                    N_T_distribution.append(self.N_Ts[-1][x, y]/total_cells)
+        for x in range(len(self.Necs[-1])):
+            for y in range(len(self.Necs[-1])):
+                if self.Necs[-1][x, y] != 0:
+                    Nec_distribution.append(self.Necs[-1][x,y]/total_cells)
+        
+        return N_T_distribution, Nec_distribution
+        
     
     def touches_border(self) -> bool:
         """

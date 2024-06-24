@@ -14,8 +14,8 @@ def main(steps, L, seed, payoff, voronoi, summary, save, show_plot):
     
     model = TumorGrowth(steps=steps, app=payoff[0][0], api=payoff[0][1], bip=payoff[1][0], bii=payoff[1][1], width=L, height=L, seed=seed, distribution='voronoi' if voronoi else 'uniform')
 
-    model.run_model()
-    
+    _, _, _, steps = model.run_model()
+   
     if summary:
         print(
             f"""
@@ -44,10 +44,12 @@ def main(steps, L, seed, payoff, voronoi, summary, save, show_plot):
     if show_plot:
         vis = TumorVisualization(model)
         # vis.plot_cell_types()
-        vis.plot_all()
-        vis.plot_radial_distance()
+        # vis.plot_tumor_over_time(steps)
+        # vis.plot_all()
+        # vis.plot_radial_distance()
         # vis.plot_proportion_cell_types()
-        vis.plot_roughness()
+        # vis.plot_roughness()
+        vis.plot_distribution()
     
 
 if __name__ == "__main__":
