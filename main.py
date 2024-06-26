@@ -44,8 +44,8 @@ def main(steps, L, seed, payoff, voronoi, summary, save, show_plot, animate):
     if show_plot:
         vis = TumorVisualization(model)
         # vis.plot_cell_types()
-        vis.plot_tumor_over_time(steps)
-        # vis.plot_all()
+        # vis.plot_tumor_over_time(steps)
+        vis.plot_all()
         # vis.plot_radial_distance()
         # vis.plot_proportion_cell_types()
         # vis.plot_roughness()

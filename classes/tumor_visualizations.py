@@ -52,13 +52,13 @@ class TumorVisualization():
         tumor_middle_fig, tumor_middle_axs = self.show_tumor(position = round(steps/2))
         tumor_final_fig, tumor_final_axs = self.show_tumor(position = steps)
 
-        tumor_initial_axs = final_axs[0].imshow(tumor_initial_axs.get_images()[0].get_array(), vmin=0, vmax=5)
+        tumor_initial_axs = final_axs[0].imshow(tumor_initial_axs.get_images()[0].get_array(), vmin=0, vmax=5, cmap = 'BuPu')
         final_axs[0].axis("off")
         final_axs[0].set_title('t=0')
-        tumor_middle_axs = final_axs[1].imshow(tumor_middle_axs.get_images()[0].get_array(), vmin=0, vmax=5)
+        tumor_middle_axs = final_axs[1].imshow(tumor_middle_axs.get_images()[0].get_array(), vmin=0, vmax=5, cmap = 'BuPu')
         final_axs[1].set_title(f't={round(steps/2)}')
         final_axs[1].axis("off")
-        tumor_final_axs = final_axs[2].imshow(tumor_final_axs.get_images()[0].get_array(), vmin=0, vmax=5)
+        tumor_final_axs = final_axs[2].imshow(tumor_final_axs.get_images()[0].get_array(), vmin=0, vmax=5, cmap = 'BuPu')
         final_axs[2].set_title(f't={steps}')
         final_axs[2].axis("off")
 
@@ -93,13 +93,13 @@ class TumorVisualization():
             nutrient_fig, nutrient_axs = self.show_nutrients(position = position)
             tumor_fig, tumor_axs = self.show_tumor(position = position)
 
-            ecm_axs = final_axs[0].imshow(ecm_axs.get_images()[0].get_array(), vmin = 0, vmax = 1)
+            ecm_axs = final_axs[0].imshow(ecm_axs.get_images()[0].get_array(), vmin = 0, vmax = 1, cmap = 'BuPu')
             final_axs[0].axis("off")
             final_axs[0].set_title('ECM Field Concentration')
-            nutrient_axs = final_axs[1].imshow(nutrient_axs.get_images()[0].get_array())
+            nutrient_axs = final_axs[1].imshow(nutrient_axs.get_images()[0].get_array(), cmap = 'BuPu')
             final_axs[1].set_title('Nutrient Field Concentration')
             final_axs[1].axis("off")
-            tumor_axs = final_axs[2].imshow(tumor_axs.get_images()[0].get_array())
+            tumor_axs = final_axs[2].imshow(tumor_axs.get_images()[0].get_array(), cmap = 'BuPu')
             final_axs[2].set_title('Tumor Cell Count')
             final_axs[2].axis("off")
 
