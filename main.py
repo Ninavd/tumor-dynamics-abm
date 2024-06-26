@@ -7,10 +7,10 @@ import matplotlib.pyplot as plt
 import warnings
 import pickle
 import time
-from helpers import save_timestamp_metadata
+from helpers import save_timestamp_metadata, build_and_save_animation
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-def main(steps, L, seed, payoff, voronoi, summary, save, show_plot):
+def main(steps, L, seed, payoff, voronoi, summary, save, show_plot, animate):
     
     model = TumorGrowth(steps=steps, app=payoff[0][0], api=payoff[0][1], bip=payoff[1][0], bii=payoff[1][1], width=L, height=L, seed=seed, distribution='voronoi' if voronoi else 'uniform')
 
@@ -51,6 +51,11 @@ def main(steps, L, seed, payoff, voronoi, summary, save, show_plot):
         # vis.plot_roughness()
         vis.plot_distribution()
     
+    if animate:
+        n_frames = 100
+        stepsize = int(len(model.N_Ts) / n_frames)
+        frames = model.N_Ts[::stepsize]
+        build_and_save_animation(frames, title='test', iterations=n_frames)
 
 if __name__ == "__main__":
     # set-up parsing command line arguments
@@ -68,6 +73,7 @@ if __name__ == "__main__":
     parser.add_argument('--summary', action="store_true", help="print summary of simulation results")
     parser.add_argument("--save", action="store_true", help="store simulation object in pickle file")
     parser.add_argument("--show_plot", action="store_true", help="show plot of final tumor")
+    parser.add_argument("--animate", action="store_true", help="save animation video of tumor growth")
 
     # read arguments from command line
     args = parser.parse_args()
@@ -79,5 +85,5 @@ if __name__ == "__main__":
 
     # run main with provided arguments
     main(
-        args.n_steps, args.L_grid, args.seed, payoff, args.voronoi, args.summary, args.save, args.show_plot
+        args.n_steps, args.L_grid, args.seed, payoff, args.voronoi, args.summary, args.save, args.show_plot, args.animate
         ) 

@@ -1,5 +1,8 @@
 import json 
 import os 
+import numpy as np 
+import matplotlib.animation as animation
+import matplotlib.pyplot as plt
 
 def save_timestamp_metadata(self, timestamp):
     app, api = self.app, self.api
@@ -77,3 +80,27 @@ def update_metadata():
 
 def select_non_zero(data):
     return data != 0
+
+def build_and_save_animation(data_frames, title, iterations):
+    """
+    Animates list of 2D-arrays and saves to mp4.
+
+    Args:
+        data_frames (list[ndarray]): list of frames to be animated.
+        title (str): title of the output file
+        iterations: Number of frames needed.
+    """
+    fig = plt.figure()
+    im = plt.imshow(np.random.randint(low=0, high=data_frames[-1].max(), size=(5, 5)), animated=True, interpolation="nearest", origin="upper", cmap='BuPu')
+    plt.colorbar()
+
+    def animate(frame_number):
+        im.set_data(data_frames[frame_number])
+        return im,
+
+    anim = animation.FuncAnimation(fig, animate, frames=iterations, interval=200, blit=True) 
+
+    # saving to m4 using ffmpeg writer 
+    writervideo = animation.FFMpegWriter(fps=15) 
+    anim.save(f'videos/{title}.mp4', writer=writervideo) 
+    plt.close()
