@@ -48,7 +48,7 @@ def main(steps, L, seed, payoff, voronoi, summary, save, show_plot, animate):
         vis.plot_all()
         # vis.plot_radial_distance()
         # vis.plot_proportion_cell_types()
-        # vis.plot_roughness()
+        vis.plot_roughness()
         vis.plot_distribution()
     
     if animate:

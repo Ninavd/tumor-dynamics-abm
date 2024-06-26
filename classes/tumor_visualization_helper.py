@@ -46,7 +46,7 @@ class TumorVisualizationHelper():
                     weighted_sum += cell
         if total == 0: # if total is 0, return the center of the mask, prevent division by 0
             return (mask.shape[0] // 2, mask.shape[1] // 2)
-        return tuple(weighted_sum // total)
+        return np.round(tuple(weighted_sum / total))
 
     def get_edges_of_a_mask(self, mask):
         """
@@ -80,8 +80,8 @@ class TumorVisualizationHelper():
         float: The roughness R of the imperfect circle.
         """
         edge_points = np.argwhere(edges_matrix == 1)
-        radii = edge_points - center
-        if (radii.shape[0] == 0):
+        radii = np.linalg.norm(edge_points - center, axis=1)
+        if (len(radii) == 0):
             return 0
         r0 = np.mean(radii)
         variance_r = np.sum((radii - r0) ** 2)
@@ -107,7 +107,7 @@ class TumorVisualizationHelper():
         for i in range(len(self.model.N_Ts)):
             mask = (self.model.N_Ts[i] + self.model.Necs[i]) > 0
             N_r, edges_matrix = self.cells_at_tumor_surface(mask)
-            center = self.find_geographical_center(mask)
+            center = self.find_geographical_center(edges_matrix)
             variance = self.compute_variance_of_roughness(edges_matrix, center)
             if N_r == 0:
                 roughness_values.append(0)

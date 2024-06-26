@@ -112,6 +112,7 @@ class TumorGrowth(Model):
             for y in range(self.height):
 
                 value = np.random.uniform(0,1)
+                #value = 0.5
                 self.ecm_layer.set_cell((x, y), value)     
 
     def init_voronoi_ECM(self):
