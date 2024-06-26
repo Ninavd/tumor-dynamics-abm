@@ -61,7 +61,10 @@ class TumorVisualizationHelper():
         for i in range(mask.shape[0]):
             for j in range(mask.shape[1]):
                 if mask[i, j]:
-                    if mask[i-1, j] == 0 or mask[i+1, j] == 0 or mask[i, j-1] == 0 or mask[i, j+1] == 0:
+                    # check if on the edge
+                    if i - 1 == -1 or i + 1 == mask.shape[0] or j + 1 == mask.shape[0] or j - 1 == -1:
+                        edges_matrix[i, j] = 1 
+                    elif mask[i-1, j] == 0 or mask[i+1, j] == 0 or mask[i, j-1] == 0 or mask[i, j+1] == 0:
                         edges_matrix[i, j] = 1
         # TODO: check to see if it makes more sense to return this as a sparse matrix, as only the edges are highlighted, so it might be sparse enough for large grids? https://stackoverflow.com/a/36971131
         
