@@ -132,6 +132,7 @@ class TumorVisualizationHelper():
 
     def calculate_velocities(self):
         velocities = []
-        for i in range(0, len(self.model.distances) - 1):
-            velocities.append((self.model.distances[i+1] - self.model.distances[i]) / self.model.delta_d)
+        for i in range(1, self.model.steps//self.model.delta_d):
+            velocities.append((self.model.radii[i*self.model.delta_d] 
+                               - self.model.radii[(i-1)*self.model.delta_d]) / self.model.delta_d)
         return velocities
