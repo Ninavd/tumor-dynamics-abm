@@ -70,7 +70,7 @@ if __name__ == "__main__":
     parser.add_argument("-app", "--alpha_pp", help="proliferative probability change when encountering an proliferative cell", default=-0.1, type=float)
     parser.add_argument("-bii", "--beta_ii", help="invasive probability change when encountering an invasive cell", default=0.1, type=float)
     parser.add_argument("-bip", "--beta_ip", help="invasive probability change when encountering an proliferative cell", default=0.02, type=float)
-    parser.add_argument("-dd", "--delta_d", help="value at which step intervall the distance is determined", default=100, type=float)
+    parser.add_argument("-dd", "--delta_d", help="value at which step intervall the distance is determined", default=100, type=int)
     parser.add_argument('--voronoi', action="store_true", help="Initialize ECM grid as voronoi diagram instead of uniform")
     parser.add_argument('--summary', action="store_true", help="print summary of simulation results")
     parser.add_argument("--save", action="store_true", help="store simulation object in pickle file")
