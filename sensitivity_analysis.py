@@ -19,7 +19,7 @@ problem = ProblemSpec({
 })
 
 n_vars_varied = problem['num_vars']
-distinct_samples = 2 #128 #1024 # NOTE: small value for testing, used to be 16 -> debraj said do 128, maybe leave out reduce param space to five
+distinct_samples = 128 #1024 # NOTE: small value for testing, used to be 16 -> debraj said do 128, maybe leave out reduce param space to five
 grid_size = 101
 steps = 1000
 distribution = 'uniform'
