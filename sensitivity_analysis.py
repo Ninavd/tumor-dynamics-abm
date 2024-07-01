@@ -13,9 +13,9 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 problem = ProblemSpec({
-    'num_vars': 10, # reduce to ~5 using 1st order
-    'names': ['D', 'k', 'gamma', 'phi_c', 'theta_p', 'theta_i', 'app', 'api', 'bip', 'bii'],
-    'bounds': [[10**(-5), 10**(-3)], [0.01, 0.05], [5*10**(-5), 5*10**(-3)], [0.01, 0.05], [0.1, 0.5], [0.1, 0.5], [-0.95, 0], [-0.05, -0.01], [0.01, 0.05], [0, 0.95]]
+    'num_vars': 9, # reduce to ~5 using 1st order
+    'names': ['D', 'k', 'phi_c', 'theta_p', 'theta_i', 'app', 'api', 'bip', 'bii'],
+    'bounds': [[10**(-5), 10**(-3)], [0.01, 0.05], [0.01, 0.05], [0.1, 0.5], [0.1, 0.5], [-0.95, 0], [-0.05, -0.01], [0.01, 0.05], [0, 0.95]]
 })
 
 n_vars_varied = problem['num_vars']
@@ -34,7 +34,7 @@ def run_model(param_values, **kwargs):
     """
     print(f"run {param_values.shape} on pid {os.getpid()}")
 
-    params = ['D', 'k', 'gamma', 'phi_c', 'theta_p', 'theta_i', 'app', 'api', 'bip', 'bii', 'diameter', 'roughness', 'living_agents', 'velocity', 'steps_taken', 'model_id']
+    params = ['D', 'k', 'phi_c', 'theta_p', 'theta_i', 'app', 'api', 'bip', 'bii', 'diameter', 'roughness', 'living_agents', 'velocity', 'steps_taken', 'model_id']
     results_dict = {param:[] for param in params}
 
     results = np.zeros(param_values.shape[0])
@@ -42,14 +42,13 @@ def run_model(param_values, **kwargs):
         model = TumorGrowth(
             D = params[0],
             k = params[1],
-            gamma = params[2],
-            phi_c = params[3],
-            theta_p = params[4],
-            theta_i=params[5],
-            app = params[6],
-            api = params[7],
-            bip = params[8],
-            bii = params[9],
+            phi_c = params[2],
+            theta_p = params[3],
+            theta_i=params[4],
+            app = params[5],
+            api = params[6],
+            bip = params[7],
+            bii = params[8],
             steps = steps, # NOTE: choose 100 for testing
             delta_d = 200,            
             **kwargs
