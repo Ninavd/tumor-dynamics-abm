@@ -50,7 +50,7 @@ def run_model(param_values, **kwargs):
             bip = params[8],
             bii = params[9],
             steps = steps, # NOTE: choose 100 for testing
-            delta_d = 200,
+            delta_d = 5,
             height = grid_size, # choose 51 for testing
             width = grid_size   # choose 51 for testing
         )
