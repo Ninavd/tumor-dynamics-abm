@@ -34,7 +34,7 @@ def run_model(param_values, **kwargs):
     """
     print(f"run {param_values.shape} on pid {os.getpid()}")
 
-    params = ['D', 'k', 'gamma', 'phi_c', 'theta_p', 'theta_i', 'app', 'api', 'bip', 'bii', 'diameter', 'roughness', 'living_agents', 'velocity', 'steps', 'model_id']
+    params = ['D', 'k', 'gamma', 'phi_c', 'theta_p', 'theta_i', 'app', 'api', 'bip', 'bii', 'diameter', 'roughness', 'living_agents', 'velocity', 'steps_taken', 'model_id']
     results_dict = {param:[] for param in params}
 
     results = np.zeros(param_values.shape[0])
