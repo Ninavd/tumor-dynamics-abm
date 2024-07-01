@@ -90,12 +90,13 @@ class TumorVisualizationHelper():
         """
         Find roughness over time.
         """
-        roughness_values = []
+        steps = len(self.model.N_Ts)
+        roughness_values = np.zeros(steps)
 
-        for i in range(len(self.model.N_Ts)):
+        for i in range(steps):
             N_T, Nec = self.model.N_Ts[i], self.model.Necs[i]
             roughness = self.calculate_roughness(N_T, Nec)
-            roughness_values.append(roughness)
+            roughness_values[i] = roughness
         
         return roughness_values
     
@@ -119,9 +120,10 @@ class TumorVisualizationHelper():
         Returns:
             list: a list of values representing the radial distance of the tumor at each time step.
         """
-        radial_distance = []
-        for N_T in self.model.N_Ts:
-            radial_distance.append(self.radius(N_T))
+        radial_distance = np.zeros(len(self.model.N_Ts))
+
+        for i, N_T in enumerate(self.model.N_Ts):
+            radial_distance[i] = self.radius(N_T)
 
         return radial_distance
 
