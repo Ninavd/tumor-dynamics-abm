@@ -81,7 +81,7 @@ class TumorGrowth(Model):
         self.Necs = []
         self.births = []
         self.deaths = [] 
-        self.distances = []
+        self.radii = []
         self.delta_d = delta_d
         # self.living_cell_distribution = []
         # self.dead_cell_distribution = []
@@ -296,10 +296,10 @@ class TumorGrowth(Model):
                 print("\n Simulation stopped: Tumor touches border")
                 self.running = False
                 roughness = self.TVH.calculate_roughness()[-1]
-                diameter = self.TVH.calculate_radial_distance()[-1]
+                self.radii = self.TVH.calculate_radial_distance()[-1]
                     
                 velocity = np.mean(self.TVH.calculate_velocities())
-                return diameter, len(self.agents), roughness, velocity, i
+                return self.radii, len(self.agents), roughness, velocity, i
             
             self.step() 
             self.save_iteration_data()
@@ -307,7 +307,7 @@ class TumorGrowth(Model):
 
         self.running = False
         roughness = self.TVH.calculate_roughness()[-1]
-        diameter = self.TVH.calculate_radial_distance()[-1]
+        self.radii = self.TVH.calculate_radial_distance()[-1]
         velocity = np.mean(self.TVH.calculate_velocities())
         return diameter, len(self.agents), roughness, velocity, self.steps
 
