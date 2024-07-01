@@ -54,7 +54,7 @@ def run_model(param_values, **kwargs):
             delta_d = 200,            
             **kwargs
         )
-        diameter, living_agents, roughness, velocity, steps = model.run_model()
+        diameter, living_agents, roughness, velocity, steps_taken = model.run_model()
 
         timestamp = str(time.time()).split('.')[0]
         model_id = f'{timestamp}_{os.getpid()}_{str(i)}'
@@ -67,14 +67,14 @@ def run_model(param_values, **kwargs):
         
         print(f'\n run {i}/{param_values.shape[0]} on pid {os.getpid()}')
         for i, key in enumerate(results_dict):
-            if key != 'diameter' and key != 'living_agents' and key != 'roughness' and key != 'model_id' and key != 'velocity' and key != 'steps':
+            if key != 'diameter' and key != 'living_agents' and key != 'roughness' and key != 'model_id' and key != 'velocity' and key != 'steps_taken':
                 results_dict[key].append(params[i])
             
         results_dict['diameter'].append(diameter)
         results_dict['living_agents'].append(living_agents)
         results_dict['roughness'].append(roughness)
         results_dict['model_id'].append(model_id)
-        results_dict['steps'].append(steps)
+        results_dict['steps_taken'].append(steps_taken)
         results_dict['velocity'].append(velocity)
     
     results_df = pd.DataFrame(results_dict)
