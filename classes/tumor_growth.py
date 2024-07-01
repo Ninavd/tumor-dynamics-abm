@@ -82,6 +82,8 @@ class TumorGrowth(Model):
         self.births = []
         self.deaths = [] 
         self.radii = []
+        
+        self.distances = []
         self.delta_d = delta_d
         # self.living_cell_distribution = []
         # self.dead_cell_distribution = []
