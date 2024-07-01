@@ -4,10 +4,12 @@ import copy
 from scipy.optimize import curve_fit
 
 class TumorVisualizationHelper():
+
+
     def __init__(self, model):
         self.model = model
 
-    def calculate_average_distance(self, mask, center):
+    def calculate_average_distance(self, edge_mask, center):
         """
         Calculate the average distance from the center of the mask to the edge.
 
@@ -18,10 +20,11 @@ class TumorVisualizationHelper():
         Returns:
             float: Average distance to the edge.
         """
-        filled_indeces = np.argwhere(mask)
-        if len(filled_indeces) == 0:
+        border_indeces = np.argwhere(edge_mask)
+        if len(border_indeces) == 0:
             return 0
-        distances = np.linalg.norm(filled_indeces - center, axis=1)
+        
+        distances = np.linalg.norm(border_indeces - center, axis=1)
         return np.mean(distances)
     
     def find_geographical_center(self, mask):
