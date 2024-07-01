@@ -10,11 +10,11 @@ import time
 from helpers import save_timestamp_metadata, build_and_save_animation
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-def main(steps, L, seed, payoff, voronoi, summary, save, show_plot, animate):
+def main(steps, dd, L, seed, payoff, voronoi, summary, save, show_plot, animate):
     
-    model = TumorGrowth(steps=steps, app=payoff[0][0], api=payoff[0][1], bip=payoff[1][0], bii=payoff[1][1], width=L, height=L, seed=seed, distribution='voronoi' if voronoi else 'uniform')
+    model = TumorGrowth(steps=steps, delta_d=dd, app=payoff[0][0], api=payoff[0][1], bip=payoff[1][0], bii=payoff[1][1], width=L, height=L, seed=seed, distribution='voronoi' if voronoi else 'uniform')
 
-    _, _, _, steps = model.run_model()
+    _, _, _, _, steps = model.run_model()
    
     if summary:
         print(
@@ -43,13 +43,14 @@ def main(steps, L, seed, payoff, voronoi, summary, save, show_plot, animate):
     
     if show_plot:
         vis = TumorVisualization(model)
-        vis.plot_all()
-        vis.plot_cell_types()
-        vis.plot_proportion_cell_types()
-        vis.plot_tumor_over_time(steps)
-        vis.plot_radial_distance()
-        vis.plot_roughness()
-        vis.plot_distribution()
+        # vis.plot_all()
+        # vis.plot_cell_types()
+        # vis.plot_proportion_cell_types()
+        # vis.plot_tumor_over_time(steps)
+        # vis.plot_radial_distance()
+        # vis.plot_roughness()
+        # vis.plot_distribution()
+        vis.plot_velocities()
     
     if animate:
         n_frames = 100
@@ -69,6 +70,7 @@ if __name__ == "__main__":
     parser.add_argument("-app", "--alpha_pp", help="proliferative probability change when encountering an proliferative cell", default=-0.1, type=float)
     parser.add_argument("-bii", "--beta_ii", help="invasive probability change when encountering an invasive cell", default=0.1, type=float)
     parser.add_argument("-bip", "--beta_ip", help="invasive probability change when encountering an proliferative cell", default=0.02, type=float)
+    parser.add_argument("-dd", "--delta_d", help="value at which step intervall the distance is determined", default=100, type=float)
     parser.add_argument('--voronoi', action="store_true", help="Initialize ECM grid as voronoi diagram instead of uniform")
     parser.add_argument('--summary', action="store_true", help="print summary of simulation results")
     parser.add_argument("--save", action="store_true", help="store simulation object in pickle file")
@@ -85,5 +87,5 @@ if __name__ == "__main__":
 
     # run main with provided arguments
     main(
-        args.n_steps, args.L_grid, args.seed, payoff, args.voronoi, args.summary, args.save, args.show_plot, args.animate
+        args.n_steps, args.delta_d, args.L_grid, args.seed, payoff, args.voronoi, args.summary, args.save, args.show_plot, args.animate
         ) 

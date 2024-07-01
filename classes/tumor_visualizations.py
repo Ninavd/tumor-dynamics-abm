@@ -255,3 +255,14 @@ class TumorVisualization():
         plt.grid()
         plt.show()
 
+    def plot_velocities(self):
+        """
+        Plot the velocities of the tumor.
+        """
+        velocities = self.TVH.calculate_velocities()
+        plt.plot(velocities)
+        plt.title('Velocity of the Tumor Over Time')
+        plt.xlabel('Iteration')
+        plt.ylabel('Velocity of the Tumor')
+        plt.grid()
+        plt.show()

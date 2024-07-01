@@ -21,7 +21,8 @@ problem = ProblemSpec({
 distinct_samples = 128 #1024 # NOTE: small value for testing, used to be 16 -> debraj said do 128, maybe leave out reduce param space to five
 grid_size = 101
 steps = 1000
-result_dir = f'./save_files/SA_analysis_{distinct_samples}_distinct_samples'
+distribution = 'uniform'
+result_dir = f'./save_files/SA_analysis_{distinct_samples}_distinct_samples_{distribution}'
 # NOTE: generate 1024 samples together, run in batches and on parallel computers to generate results
 if not os.path.exists(result_dir):
     os.mkdir(result_dir)
@@ -49,6 +50,7 @@ def run_model(param_values, **kwargs):
             bip = params[8],
             bii = params[9],
             steps = steps, # NOTE: choose 100 for testing
+            delta_d = 200,
             height = grid_size, # choose 51 for testing
             width = grid_size   # choose 51 for testing
         )

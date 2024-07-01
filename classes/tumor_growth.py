@@ -20,7 +20,7 @@ class TumorGrowth(Model):
     '''
     Tumor Growth Model
     '''
-    def __init__(self, height = 201, width = 201, steps = 1000,
+    def __init__(self, height = 201, width = 201, steps = 1000, delta_d=100,
                 D= 1*10**-4, k = 0.02, gamma = 5*10**-4, phi_c= 0.02,
                 theta_p=0.2, theta_i=0.2, app=-0.1, api=-0.02, bip=0.02, bii=0.1, 
                 seed = 913, distribution= 'uniform'):
@@ -81,6 +81,8 @@ class TumorGrowth(Model):
         self.Necs = []
         self.births = []
         self.deaths = [] 
+        self.distances = []
+        self.delta_d = delta_d
         # self.living_cell_distribution = []
         # self.dead_cell_distribution = []
 
@@ -287,28 +289,27 @@ class TumorGrowth(Model):
         """
         for i in range(self.steps):
             print(f'Running... step: {i+1}/{self.steps}         ', end='\r')
+            if i % self.delta_d == 0:
+                self.distances.append(self.TVH.calculate_radial_distance()[-1])
 
             if self.touches_border():
                 print("\n Simulation stopped: Tumor touches border")
                 self.running = False
                 roughness = self.TVH.calculate_roughness()[-1]
                 diameter = self.TVH.calculate_radial_distance()[-1]
-                return diameter, len(self.agents), roughness, i
+                    
+                velocity = np.mean(self.TVH.calculate_velocities())
+                return diameter, len(self.agents), roughness, velocity, i
             
             self.step() 
             self.save_iteration_data()
-
-            # if i in [round(self.steps/4), round(self.steps/2), round(3*self.steps/4), self.steps-1]:
-            #     cell_dist = self.cell_distribution()
-            #     print(f'Living cells: {len(cell_dist[0])}, Dead cells: {len(cell_dist[1])}')
-            #     self.living_cell_distribution.append(cell_dist[0])
-            #     self.dead_cell_distribution.append(cell_dist[1])
         
 
         self.running = False
         roughness = self.TVH.calculate_roughness()[-1]
         diameter = self.TVH.calculate_radial_distance()[-1]
-        return diameter, len(self.agents), roughness, self.steps
+        velocity = np.mean(self.TVH.calculate_velocities())
+        return diameter, len(self.agents), roughness, velocity, self.steps
 
     def cell_distribution(self, iteration: int):
         """
@@ -317,16 +318,6 @@ class TumorGrowth(Model):
         Args:
             iteration: which state to use for calculation.
         """
-        # N_T_distribution = []
-        # Nec_distribution = []
-
-        # for x in range(len(self.N_Ts[iteration])):
-        #     for y in range(len(self.N_Ts[iteration])):
-        #         if self.N_Ts[iteration][x, y] != 0:
-        #             N_T_distribution.append(self.N_Ts[iteration][x, y])
-        #         if self.Necs[iteration][x, y] != 0:
-        #             Nec_distribution.append(self.Necs[iteration][x,y])
-        # return N_T_distribution, Nec_distribution
         N_T = self.N_Ts[iteration]
         Nec = self.Necs[iteration]
         return N_T[N_T != 0], Nec[Nec != 0]

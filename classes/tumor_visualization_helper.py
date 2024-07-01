@@ -129,3 +129,9 @@ class TumorVisualizationHelper():
             radial_distance.append(self.calculate_average_distance(edges_of_mask, geographical_center))
 
         return radial_distance
+
+    def calculate_velocities(self):
+        velocities = []
+        for i in range(0, len(self.model.distances) - 1):
+            velocities.append((self.model.distances[i+1] - self.model.distances[i]) / self.model.delta_d)
+        return velocities
