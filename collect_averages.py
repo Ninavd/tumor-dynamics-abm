@@ -5,6 +5,7 @@ from classes.tumor_visualizations import TumorVisualization
 from classes.tumor_visualization_helper import TumorVisualizationHelper
 import matplotlib.pyplot as plt
 import warnings
+import math
 from helpers import save_timestamp_metadata, build_and_save_animation
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -13,12 +14,12 @@ def main(steps, L, seed, payoff, voronoi):
     print(f"Running simulation with the following parameters: \nsteps: {steps}, L: {L}, seed: {seed}, payoff: {payoff}, voronoi: {voronoi}")
     model = TumorGrowth(steps=steps, app=payoff[0][0], api=payoff[0][1], bip=payoff[1][0], bii=payoff[1][1], width=L, height=L, seed=seed, distribution='voronoi' if voronoi else 'uniform')
 
-    _, _, _, steps = model.run_model()
+    _, _, _, _, steps = model.run_model()
     return model, steps
 
 def calculate_CI(x, z = 1.96):
     stdev = np.std(x, axis=0)
-    confidence_interval = z * stdev / sqrt(np.array(x).shape[0])
+    confidence_interval = z * stdev / math.sqrt(np.array(x).shape[0])
     return confidence_interval
 
 if __name__ == "__main__":
