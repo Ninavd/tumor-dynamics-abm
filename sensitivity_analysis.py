@@ -19,12 +19,12 @@ problem = ProblemSpec({
 })
 
 n_vars_varied = problem['num_vars']
-distinct_samples = 128 #1024 # NOTE: small value for testing, used to be 16 -> debraj said do 128, maybe leave out reduce param space to five
+distinct_samples = 128 #1024 # NOTE: use small value for testing
 grid_size = 101
 steps = 1000
 distribution = 'uniform'
 result_dir = f'./save_files/SA_analysis_{distinct_samples}_distinct_samples_{distribution}'
-# NOTE: generate 1024 samples together, run in batches and on parallel computers to generate results
+
 if not os.path.exists(result_dir):
     os.mkdir(result_dir)
 
@@ -49,7 +49,6 @@ def run_model(param_values, **kwargs):
             api = params[6],
             bip = params[7],
             bii = params[8],
-            steps = steps, # NOTE: choose 100 for testing
             delta_d = 200,            
             **kwargs
         )
@@ -86,11 +85,10 @@ def run_model(param_values, **kwargs):
 problem = problem.sample(sobol.sample, distinct_samples, calc_second_order=False)
 
 # run model with the samples in parallel
-### NOTE: Removed steps=steps
-problem.evaluate(run_model, height=grid_size, width=grid_size, nprocs=12) # NOTE: can increase nprocs even more maybe
+problem.evaluate(run_model, steps=steps, height=grid_size, width=grid_size, nprocs=12) # NOTE: can increase nprocs even more maybe
 
 from glob import glob
-# NOTE: TODO: REMOVE HARD CODED PARAM COUNT!!!!!!
+
 pattern = f'*results_steps_{steps}_grid_{grid_size}_params_varied_{n_vars_varied}_id*'      # Replace with the pattern for matching file names
 output_file = f'{result_dir}/concatenated_results_steps_{steps}_grid_{grid_size}_params_varied_{n_vars_varied}.csv'
 
@@ -117,7 +115,7 @@ with open(f'{result_dir}/problem_{time_stamp}.pickle', 'wb') as file:
     pickle.dump(problem, file)
 
 
-total, first = Si_tumor.to_df() # returns list of dfs i think..
+total, first = Si_tumor.to_df() # returns list of dfs 
 total.to_csv(f'{result_dir}/ST_tumor_diameter_steps_{steps}_grid_{grid_size}_params_varied_{n_vars_varied}.csv')
 first.to_csv(f'{result_dir}/S1_tumor_diameter_steps_{steps}_grid_{grid_size}_params_varied_{n_vars_varied}.csv')
 
