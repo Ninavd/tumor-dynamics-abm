@@ -210,6 +210,10 @@ class TumorVisualization():
         # tvh = TVH(self.model)
         radial_distance = self.TVH.calculate_radial_distance()
         plt.plot(radial_distance)
+        velocity = self.TVH.linear_fit()
+        offset = 0
+        linear_func = lambda a, b, x : a*x + b
+        plt.plot(range(len(self.model.N_Ts)), [linear_func(velocity, offset, x) for x in range(len(self.model.N_Ts))], color='orange')
         plt.title('Average Radial Distance From Tumor Center to Tumor Edge')
         plt.xlabel('Iteration')
         plt.ylabel('Average Radial Distance')

@@ -47,10 +47,10 @@ def main(steps, dd, L, seed, payoff, voronoi, summary, save, show_plot, animate)
         # vis.plot_cell_types()
         # vis.plot_proportion_cell_types()
         # vis.plot_tumor_over_time(steps)
-        # vis.plot_radial_distance()
+        vis.plot_radial_distance()
         # vis.plot_roughness()
         # vis.plot_distribution()
-        vis.plot_velocities()
+        # vis.plot_velocities()
     
     if animate:
         n_frames = 100

@@ -298,7 +298,8 @@ class TumorGrowth(Model):
                 self.radii = self.TVH.calculate_radial_distance()
                 radius = self.radii[-1]
                     
-                velocity = np.mean(self.TVH.calculate_velocities())
+                # velocity = np.mean(self.TVH.calculate_velocities())
+                velocity = self.TVH.linear_fit()
                 return radius, len(self.agents), roughness, velocity, i
             
             self.step() 
@@ -309,8 +310,9 @@ class TumorGrowth(Model):
         roughness = self.TVH.calculate_roughness()[-1]
         self.radii = self.TVH.calculate_radial_distance()
         radius = self.radii[-1]
-        velocity = np.mean(self.TVH.calculate_velocities())
-        return radius, len(self.agents), roughness, velocity, self.steps
+        # velocity = np.mean(self.TVH.calculate_velocities())
+        velocity = self.TVH.linear_fit()
+        return radius, len(self.agents), roughness,  velocity, self.steps
 
 
     def cell_distribution(self, iteration: int):
