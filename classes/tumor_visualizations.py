@@ -261,6 +261,11 @@ class TumorVisualization():
         """
         velocities = self.TVH.calculate_velocities()
         plt.plot(velocities)
+        moving_average = 25
+        ret = np.cumsum(velocities, dtype=float)
+        ret[moving_average:] = ret[moving_average:] - ret[:-moving_average]
+        ma = ret[moving_average - 1:] / moving_average
+        plt.plot(ma)
         plt.title('Velocity of the Tumor Over Time')
         plt.xlabel('Iteration')
         plt.ylabel('Velocity of the Tumor')
