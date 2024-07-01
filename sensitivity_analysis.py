@@ -21,7 +21,7 @@ problem = ProblemSpec({
 n_vars_varied = problem['num_vars']
 distinct_samples = 128 #1024 # NOTE: small value for testing, used to be 16 -> debraj said do 128, maybe leave out reduce param space to five
 grid_size = 101
-steps = 1000
+steps = 100
 distribution = 'uniform'
 result_dir = f'./save_files/SA_analysis_{distinct_samples}_distinct_samples_{distribution}'
 # NOTE: generate 1024 samples together, run in batches and on parallel computers to generate results
@@ -87,7 +87,8 @@ def run_model(param_values, **kwargs):
 problem = problem.sample(sobol.sample, distinct_samples, calc_second_order=False)
 
 # run model with the samples in parallel
-problem.evaluate(run_model, steps=steps, height=grid_size, width=grid_size, nprocs=12) # NOTE: can increase nprocs even more maybe
+### NOTE: Removed steps=steps
+problem.evaluate(run_model, height=grid_size, width=grid_size, nprocs=12) # NOTE: can increase nprocs even more maybe
 
 from glob import glob
 # NOTE: TODO: REMOVE HARD CODED PARAM COUNT!!!!!!
