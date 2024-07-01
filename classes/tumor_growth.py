@@ -95,8 +95,6 @@ class TumorGrowth(Model):
         # save initial state
         self.save_iteration_data() 
 
-        # # self.datacollector = DataCollector(model_reporters={"Number Of Cells": lambda m: len(m.agents)})
-
     def init_nutrient_layer(self):
         """
         Initializes the nutrient concentration field by sampling 
@@ -291,28 +289,23 @@ class TumorGrowth(Model):
         """
         for i in range(self.steps):
             print(f'Running... step: {i+1}/{self.steps}         ', end='\r')
+
             if self.touches_border():
                 print("\n Simulation stopped: Tumor touches border")
-                self.running = False
-                roughness = self.TVH.calculate_roughness()[-1]
-                self.radii = self.TVH.calculate_radial_distance()
-                radius = self.radii[-1]
-                    
+                roughness = self.TVH.calculate_roughness(self.N_T, self.Nec)
+                self.radii = self.TVH.radius_progression()
+                velocity = self.TVH.velocity_linear_fit()    
                 # velocity = np.mean(self.TVH.calculate_velocities())
-                velocity = self.TVH.linear_fit()
-                return radius, len(self.agents), roughness, velocity, i
+                return self.TVH.radius(self.N_T), len(self.agents), roughness, velocity, i
             
             self.step() 
             self.save_iteration_data()
         
-
-        #self.running = False
-        roughness = self.TVH.calculate_roughness()[-1]
-        self.radii = self.TVH.calculate_radial_distance()
-        radius = self.radii[-1]
+        roughness = self.TVH.calculate_roughness(self.N_Ts[-1], self.Necs[-1])
+        self.radii = self.TVH.radius_progression()
+        velocity = self.TVH.velocity_linear_fit()
         # velocity = np.mean(self.TVH.calculate_velocities())
-        velocity = self.TVH.linear_fit()
-        return radius, len(self.agents), roughness,  velocity, self.steps
+        return self.TVH.radius(self.N_T), len(self.agents), roughness, velocity, self.steps
 
 
     def cell_distribution(self, iteration: int):

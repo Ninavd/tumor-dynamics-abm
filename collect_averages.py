@@ -6,7 +6,6 @@ from classes.tumor_visualization_helper import TumorVisualizationHelper
 import matplotlib.pyplot as plt
 import warnings
 import math
-from helpers import save_timestamp_metadata, build_and_save_animation
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def main(steps, L, seed, payoff, voronoi):
@@ -55,13 +54,10 @@ if __name__ == "__main__":
         [args.alpha_pp, args.alpha_pi], 
         [args.beta_ip, args.beta_ii]
         ]
-    list_of_proliferating_cells = []
-    list_of_invasive_cells = []
-    list_of_necrotic_cells = []
+    
+    list_of_proliferating_cells, list_of_invasive_cells, list_of_necrotic_cells = [], [], []
 
-    list_of_proportion_proliferative = []
-    list_of_proportion_invasive = []
-    list_of_proportion_necrotic = []
+    list_of_proportion_proliferative, list_of_proportion_invasive, list_of_proportion_necrotic = [], [], []
 
     list_of_radius = []
     list_of_roughness = []
@@ -94,7 +90,7 @@ if __name__ == "__main__":
 
         visualization_helper = TumorVisualizationHelper(model)
         radius = visualization_helper.calculate_radial_distance()
-        roughness = visualization_helper.calculate_roughness()
+        roughness = visualization_helper.calculate_roughness_progression()
         list_of_radius.append(radius)
         list_of_roughness.append(roughness)
 
@@ -109,7 +105,7 @@ if __name__ == "__main__":
     plot_with_CI(list_of_invasive_cells, label='invasive')
     plot_with_CI(list_of_necrotic_cells, label='necrotic')
     plt.title(f'Number of Cell Types, Average of {args.n_runs} Runs')
-    plt.ylabel('Amount')
+    plt.ylabel('number of cells')
     plt.legend()
     plt.grid()
     plt.show()
@@ -119,7 +115,7 @@ if __name__ == "__main__":
     plot_with_CI(list_of_proportion_invasive, label='invasive')
     plot_with_CI(list_of_proportion_necrotic, label='necrotic')
     plt.title(f'Number of Cell Types, Average of {args.n_runs} Runs')
-    plt.ylabel('Fraction')
+    plt.ylabel('fraction of cells')
     plt.legend()
     plt.grid()
     plt.show()
@@ -134,7 +130,7 @@ if __name__ == "__main__":
     # Average roughness progression
     plot_with_CI(list_of_roughness)
     plt.title(f'Average Roughness of Tumor Edge, Average of {args.n_runs} Runs')
-    plt.ylabel('Average Roughness')
+    plt.ylabel('average roughness')
     plt.grid()
     plt.show()
 
@@ -144,3 +140,6 @@ if __name__ == "__main__":
     plt.ylabel('$\langle v \\rangle$')
     plt.grid()
     plt.show()
+
+# TODO: save averages and confidence interval to csv
+# TODO: implement running in parallel
