@@ -109,7 +109,7 @@ class TumorVisualization():
             final_fig.colorbar(ecm_axs, ax=final_axs[0], fraction=0.046, pad=0.04)
             final_fig.colorbar(nutrient_axs, ax=final_axs[1], fraction=0.046, pad=0.04)
             final_fig.colorbar(tumor_axs, ax=final_axs[2], fraction=0.046, pad=0.04)
-            plt.suptitle(f'ECM, Nutrient, and Tumor Values at Iteration {position%(len(self.model.ecm_layers))} of {len(self.model.ecm_layers)-1} For a {self.model.height}x{self.model.width} Grid')
+            plt.suptitle(f'ECM, Nutrient, and Tumor Values at Iteration {position%self.model.steps + 1} of {self.model.steps} for a {self.model.height}x{self.model.width} Grid')
             plt.show()
 
     def plot_distribution(self):
