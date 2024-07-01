@@ -109,7 +109,7 @@ class TumorVisualization():
             final_fig.colorbar(ecm_axs, ax=final_axs[0], fraction=0.046, pad=0.04)
             final_fig.colorbar(nutrient_axs, ax=final_axs[1], fraction=0.046, pad=0.04)
             final_fig.colorbar(tumor_axs, ax=final_axs[2], fraction=0.046, pad=0.04)
-            plt.suptitle(f'ECM, Nutrient, and Tumor Values at Iteration {position%(len(self.model.ecm_layers))} of {len(self.model.ecm_layers)-1} For a {self.model.height}x{self.model.width} Grid')
+            plt.suptitle(f'ECM, Nutrient, and Tumor Values at Iteration {position%self.model.steps + 1} of {self.model.steps} for a {self.model.height}x{self.model.width} Grid')
             plt.show()
 
     def plot_distribution(self):
@@ -210,6 +210,10 @@ class TumorVisualization():
         # tvh = TVH(self.model)
         radial_distance = self.TVH.calculate_radial_distance()
         plt.plot(radial_distance)
+        velocity = self.TVH.linear_fit()
+        offset = 0
+        linear_func = lambda a, b, x : a*x + b
+        plt.plot(range(len(self.model.N_Ts)), [linear_func(velocity, offset, x) for x in range(len(self.model.N_Ts))], color='orange')
         plt.title('Average Radial Distance From Tumor Center to Tumor Edge')
         plt.xlabel('Iteration')
         plt.ylabel('Average Radial Distance')
@@ -261,6 +265,11 @@ class TumorVisualization():
         """
         velocities = self.TVH.calculate_velocities()
         plt.plot(velocities)
+        moving_average = 25
+        ret = np.cumsum(velocities, dtype=float)
+        ret[moving_average:] = ret[moving_average:] - ret[:-moving_average]
+        ma = ret[moving_average - 1:] / moving_average
+        plt.plot(ma)
         plt.title('Velocity of the Tumor Over Time')
         plt.xlabel('Iteration')
         plt.ylabel('Velocity of the Tumor')

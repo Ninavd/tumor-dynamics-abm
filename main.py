@@ -47,10 +47,10 @@ def main(steps, dd, L, seed, payoff, voronoi, summary, save, show_plot, animate)
         # vis.plot_cell_types()
         # vis.plot_proportion_cell_types()
         # vis.plot_tumor_over_time(steps)
-        # vis.plot_radial_distance()
+        vis.plot_radial_distance()
         # vis.plot_roughness()
         # vis.plot_distribution()
-        vis.plot_velocities()
+        # vis.plot_velocities()
     
     if animate:
         n_frames = 100
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     parser.add_argument("-app", "--alpha_pp", help="proliferative probability change when encountering an proliferative cell", default=-0.1, type=float)
     parser.add_argument("-bii", "--beta_ii", help="invasive probability change when encountering an invasive cell", default=0.1, type=float)
     parser.add_argument("-bip", "--beta_ip", help="invasive probability change when encountering an proliferative cell", default=0.02, type=float)
-    parser.add_argument("-dd", "--delta_d", help="value at which step intervall the distance is determined", default=100, type=float)
+    parser.add_argument("-dd", "--delta_d", help="value at which step intervall the distance is determined", default=100, type=int)
     parser.add_argument('--voronoi', action="store_true", help="Initialize ECM grid as voronoi diagram instead of uniform")
     parser.add_argument('--summary', action="store_true", help="print summary of simulation results")
     parser.add_argument("--save", action="store_true", help="store simulation object in pickle file")

@@ -81,6 +81,8 @@ class TumorGrowth(Model):
         self.Necs = []
         self.births = []
         self.deaths = [] 
+        self.radii = []
+        
         self.distances = []
         self.delta_d = delta_d
         # self.living_cell_distribution = []
@@ -289,27 +291,29 @@ class TumorGrowth(Model):
         """
         for i in range(self.steps):
             print(f'Running... step: {i+1}/{self.steps}         ', end='\r')
-            if i % self.delta_d == 0:
-                self.distances.append(self.TVH.calculate_radial_distance()[-1])
-
             if self.touches_border():
                 print("\n Simulation stopped: Tumor touches border")
                 self.running = False
                 roughness = self.TVH.calculate_roughness()[-1]
-                diameter = self.TVH.calculate_radial_distance()[-1]
+                self.radii = self.TVH.calculate_radial_distance()
+                radius = self.radii[-1]
                     
-                velocity = np.mean(self.TVH.calculate_velocities())
-                return diameter, len(self.agents), roughness, velocity, i
+                # velocity = np.mean(self.TVH.calculate_velocities())
+                velocity = self.TVH.linear_fit()
+                return radius, len(self.agents), roughness, velocity, i
             
             self.step() 
             self.save_iteration_data()
         
 
-        self.running = False
+        #self.running = False
         roughness = self.TVH.calculate_roughness()[-1]
-        diameter = self.TVH.calculate_radial_distance()[-1]
-        velocity = np.mean(self.TVH.calculate_velocities())
-        return diameter, len(self.agents), roughness, velocity, self.steps
+        self.radii = self.TVH.calculate_radial_distance()
+        radius = self.radii[-1]
+        # velocity = np.mean(self.TVH.calculate_velocities())
+        velocity = self.TVH.linear_fit()
+        return radius, len(self.agents), roughness,  velocity, self.steps
+
 
     def cell_distribution(self, iteration: int):
         """

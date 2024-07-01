@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import copy
-
+from scipy.optimize import curve_fit
 class TumorVisualizationHelper():
     def __init__(self, model):
         self.model = model
@@ -12,6 +12,7 @@ class TumorVisualizationHelper():
 
         Args:
             mask (np.ndarray): Binary mask matrix.
+            center (tuple): Coordinates of the center
 
         Returns:
             float: Average distance to the edge.
@@ -105,6 +106,8 @@ class TumorVisualizationHelper():
         return np.sum(edges_matrix), edges_matrix
 
     def calculate_roughness(self):
+        """
+        """
         roughness_values = []
 
         for i in range(len(self.model.N_Ts)):
@@ -121,6 +124,11 @@ class TumorVisualizationHelper():
         return roughness_values
     
     def calculate_radial_distance(self):
+        """Calculates the radial distance of the tumor at each time step.
+
+        Returns:
+            list: a list of values representing the radial distance of the tumor at each time step.
+        """
         radial_distance = []
         for i in range(len(self.model.N_Ts)):
             mask = self.model.N_Ts[i] > 0
@@ -131,7 +139,28 @@ class TumorVisualizationHelper():
         return radial_distance
 
     def calculate_velocities(self):
+        """
+        Calculate velocities for every delta_d timesteps
+        
+        Returns:
+            list: a list of velocities for every delta_d timesteps
+        """
         velocities = []
-        for i in range(0, len(self.model.distances) - 1):
-            velocities.append((self.model.distances[i+1] - self.model.distances[i]) / self.model.delta_d)
+        for i in range(1, self.model.steps//self.model.delta_d):
+            velocities.append((self.model.radii[i*self.model.delta_d] 
+                               - self.model.radii[(i-1)*self.model.delta_d]) / self.model.delta_d)
         return velocities
+
+
+    def linear_fit(self):
+        """
+        Perform linear fit on radius progression.
+
+        Returns: 
+            float: velocity of the tumor growth
+        """
+        popt, pcov = curve_fit(lambda x, a, b: a * x - b, xdata = range(len(self.model.N_Ts)-100), ydata=self.model.radii[100:])
+        velocity = popt[0]
+        self.offset = popt[1]
+        print(velocity, self.offset)
+        return velocity
