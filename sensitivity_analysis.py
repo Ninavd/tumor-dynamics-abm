@@ -22,7 +22,7 @@ n_vars_varied = problem['num_vars']
 distinct_samples = 1024 #1024 # NOTE: use small value for testing
 grid_size = 101
 steps = 1000
-distribution = 'uniform'
+distribution = 'voronoi'
 result_dir = f'./save_files/SA_analysis_{distinct_samples}_distinct_samples_{distribution}'
 
 if not os.path.exists(result_dir):
