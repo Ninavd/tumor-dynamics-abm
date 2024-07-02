@@ -46,7 +46,6 @@ def run_model(param_values, **kwargs):
             api = params[3],
             bip = params[4],
             bii = params[5],
-            steps = steps, # NOTE: choose 100 for testing
             delta_d = 200,            
             **kwargs
         )
@@ -83,7 +82,7 @@ def run_model(param_values, **kwargs):
 problem = problem.sample(sobol.sample, distinct_samples, calc_second_order=False)
 
 # run model with the samples in parallel
-problem.evaluate(run_model, height=grid_size, width=grid_size, nprocs=12) # NOTE: can increase nprocs even more maybe
+problem.evaluate(run_model, steps=steps, height=grid_size, width=grid_size, nprocs=12) # NOTE: can increase nprocs even more maybe
 
 from glob import glob
 
