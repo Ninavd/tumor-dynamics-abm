@@ -1,14 +1,6 @@
-import SALib
-from SALib.sample import sobol
-from SALib import ProblemSpec
-import numpy as np
 import matplotlib.pyplot as plt
-from classes.tumor_growth import TumorGrowth
 import pickle
-import time
-import os 
 
-import pandas as pd
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
