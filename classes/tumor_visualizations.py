@@ -1,14 +1,17 @@
 import numpy as np
 import matplotlib.pyplot as plt
+
 from classes.tumor_visualization_helper import TumorVisualizationHelper as TVH
-# import 
+
 
 class TumorVisualization():
-    def __init__(self, model) -> None:
+
+
+    def __init__(self, model):
         self.model = model
         self.TVH = TVH(model)
 
-    def show_ecm(self, position = -1, show=True):
+    def show_ecm(self, position = -1):
         """
         Plot current ECM density field.
         """
@@ -16,7 +19,7 @@ class TumorVisualization():
         im = axs.imshow(self.model.ecm_layers[position])
         return fig, axs
 
-    def show_nutrients(self, position = -1, show=True):
+    def show_nutrients(self, position = -1):
         """
         Plot current nutrient concentration field.
         """
@@ -24,7 +27,7 @@ class TumorVisualization():
         im = axs.imshow(self.model.nutrient_layers[position])
         return fig, axs
     
-    def show_tumor(self, position = -1, show=True):
+    def show_tumor(self, position = -1):
         """
         Plot mask of the tumor. Includes necrotic cells.
         """
@@ -32,7 +35,7 @@ class TumorVisualization():
         im = axs.imshow(self.model.N_Ts[position])
         return fig, axs
     
-    def plot_necrotic_cells(self, position = -1, show=True):
+    def plot_necrotic_cells(self, position = -1):
         """
         Plot mask of the tumor. Includes necrotic cells.
         """
@@ -65,9 +68,6 @@ class TumorVisualization():
         plt.close(tumor_initial_fig)
         plt.close(tumor_middle_fig)
         plt.close(tumor_final_fig)
-        # final_fig.colorbar(tumor_initial_axs, ax=final_axs[0], fraction=0.046, pad=0.04)
-        # final_fig.colorbar(tumor_middle_axs, ax=final_axs[1], fraction=0.046, pad=0.04)
-        # im_ratio = data.shape[0]/data.shape[1]
         im_ratio = 1
 
         final_fig.colorbar(tumor_final_axs, ax=final_axs.ravel().tolist(), fraction=0.046*im_ratio, pad=0.04)
@@ -96,9 +96,11 @@ class TumorVisualization():
             ecm_axs = final_axs[0].imshow(ecm_axs.get_images()[0].get_array(), vmin = 0, vmax = 1, cmap = 'BuPu')
             final_axs[0].axis("off")
             final_axs[0].set_title('ECM Field Concentration')
+
             nutrient_axs = final_axs[1].imshow(nutrient_axs.get_images()[0].get_array(), cmap = 'BuPu')
             final_axs[1].set_title('Nutrient Field Concentration')
             final_axs[1].axis("off")
+
             tumor_axs = final_axs[2].imshow(tumor_axs.get_images()[0].get_array(), cmap = 'BuPu')
             final_axs[2].set_title('Tumor Cell Count')
             final_axs[2].axis("off")
@@ -106,40 +108,12 @@ class TumorVisualization():
             plt.close(ecm_fig)
             plt.close(nutrient_fig)
             plt.close(tumor_fig)
+            
             final_fig.colorbar(ecm_axs, ax=final_axs[0], fraction=0.046, pad=0.04)
             final_fig.colorbar(nutrient_axs, ax=final_axs[1], fraction=0.046, pad=0.04)
             final_fig.colorbar(tumor_axs, ax=final_axs[2], fraction=0.046, pad=0.04)
             plt.suptitle(f'ECM, Nutrient, and Tumor Values at Iteration {position%self.model.steps + 1} of {self.model.steps} for a {self.model.height}x{self.model.width} Grid')
             plt.show()
-
-    def plot_distribution(self):
-        # total_cells = []
-        plt.figure(figsize=(12, 7))
-        dead_distributions = []
-        living_distributions = []
-        time_points = [round(self.model.steps/4), round(self.model.steps/2), round(3*self.model.steps/4), self.model.steps-1]
-        for i in time_points:
-            living_distr, dead_distr = self.model.cell_distribution(iteration = i)
-            dead_distributions.append(dead_distr)
-            living_distributions.append(living_distr)
-
-        names = ['dead', 'living']
-        distributions = [dead_distributions, living_distributions]
-        for i in range(2):
-
-            plt.subplot(121 + i)
-            plt.title(names[i])
-
-            for i, distr in enumerate(distributions[i]):
-                if len(distr) == 0:
-                    continue
-                d = np.diff(np.unique(distr)).min()
-                left_of_first_bin = distr.min() - float(d)/2
-                right_of_last_bin = distr.max() + float(d)/2
-                plt.hist(np.array(distr).flatten(), np.arange(left_of_first_bin, right_of_last_bin + d), d, label=f't={time_points[i]}', histtype='step')
-            plt.legend()
-
-        plt.show()
 
     def plot_birth_deaths(self):
         birth_rel_death = [(self.model.births[i]) /(self.model.births[i] + self.model.deaths[i]) for i in range(len(self.model.births))]
@@ -151,56 +125,13 @@ class TumorVisualization():
 
         ax1.set_xlabel('Iteration')
         ax1.set_ylabel('Count')
-        ax2.set_ylabel('Relative Percentage', color='g')
+        ax2.set_ylabel('Relative fracion', color='g')
         ax2.tick_params(colors='green', which='both')
+        ax2.set_ylim(0, 1.05)
         handles1, labels1 = ax1.get_legend_handles_labels()
         handles2, labels2 = ax2.get_legend_handles_labels()
         plt.legend(handles1 + handles2, labels1 + labels2)
         plt.title('Cumulative Number of Births and Deaths')
-        plt.show()
-    
-    def plot_max_nutrient(self):
-        min_nutrient = [np.min(nutrient) for nutrient in self.model.nutrient_layers]
-        sum_nutrient = [np.sum(nutrient) for nutrient in self.model.nutrient_layers]
-        relative_count = [min_nutrient[i]/sum_nutrient[i] for i in range(len(min_nutrient))]
-        fig, ax1 = plt.subplots()
-
-        ax2 = ax1.twinx()
-        ax1.plot(min_nutrient, label='Min Nutrient Value')
-        ax1.plot(sum_nutrient, label='Sum of Nutrient Values')
-        ax2.plot(relative_count, 'g', label='Relative Percentage of Max Cells in Grid')
-
-        ax1.set_xlabel('Iteration')
-        ax1.set_ylabel('Nutrient Value')
-        ax2.set_ylabel('Relative Percentage', color='g')
-        ax2.tick_params(colors='green', which='both')
-        plt.title('Nutrient Value in Grid')
-        handles1, labels1 = ax1.get_legend_handles_labels()
-        handles2, labels2 = ax2.get_legend_handles_labels()
-        plt.legend(handles1 + handles2, labels1 + labels2)
-        plt.show()
-    
-    def plot_max_count(self):
-        max_count = [np.max(N_T) for N_T in self.model.N_Ts]
-        sum_count = [np.sum(N_T) for N_T in self.model.N_Ts]
-        relative_count = [max_count[i]/sum_count[i] for i in range(len(max_count))]
-        fig, ax1 = plt.subplots()
-
-        ax2 = ax1.twinx()
-        ax1.plot(max_count, label='Max Cells in a Subsection of Grid')
-        ax1.plot(sum_count, label='Total Number of Cells in Grid')
-        ax2.plot(relative_count, 'g', label='Relative Percentage of Max Cells to Total Number of Cells in Grid')
-
-        ax1.set_xlabel('Iteration')
-        ax1.set_ylabel('Cell Count')
-        ax2.set_ylabel('Relative Percentage', color='g')
-        ax2.tick_params(colors='g', which='both')
-        ax2.set_ylabel('Relative Percentage', color='g')
-        
-        plt.title('Cell Count in Grid')
-        handles1, labels1 = ax1.get_legend_handles_labels()
-        handles2, labels2 = ax2.get_legend_handles_labels()
-        plt.legend(handles1 + handles2, labels1 + labels2)
         plt.show()
     
     def plot_radial_distance(self):
