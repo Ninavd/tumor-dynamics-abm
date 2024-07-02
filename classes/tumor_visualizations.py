@@ -108,7 +108,7 @@ class TumorVisualization():
             plt.close(ecm_fig)
             plt.close(nutrient_fig)
             plt.close(tumor_fig)
-            
+
             final_fig.colorbar(ecm_axs, ax=final_axs[0], fraction=0.046, pad=0.04)
             final_fig.colorbar(nutrient_axs, ax=final_axs[1], fraction=0.046, pad=0.04)
             final_fig.colorbar(tumor_axs, ax=final_axs[2], fraction=0.046, pad=0.04)
@@ -139,10 +139,6 @@ class TumorVisualization():
         Plot the radial distance of the tumor from the center of the grid.
         """
         plt.plot(self.model.radii)
-        velocity = self.TVH.velocity_linear_fit()
-        offset = 0
-        linear_func = lambda a, b, x : a*x + b
-        plt.plot(range(len(self.model.N_Ts)), [linear_func(velocity, offset, x) for x in range(len(self.model.N_Ts))], color='orange')
         plt.title('Average Radial Distance From Tumor Center to Tumor Edge')
         plt.xlabel('Iteration')
         plt.ylabel('Average Radial Distance')

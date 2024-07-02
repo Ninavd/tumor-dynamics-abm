@@ -319,7 +319,7 @@ class TumorGrowth(Model):
         roughness = self.TVH.calculate_roughness(self.N_Ts[-1], self.Necs[-1])
         self.radii = self.TVH.radius_progression()
         radius = self.TVH.radius(self.N_T)
-        velocity = self.TVH.velocity_linear_fit()
+        velocity, _ = self.TVH.velocity_linear_fit()
         # velocity = np.mean(self.TVH.calculate_velocities())
         n_agents = len(self.agents)
         return radius, n_agents, roughness, velocity, step

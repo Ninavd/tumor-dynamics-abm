@@ -158,9 +158,8 @@ class TumorVisualizationHelper():
         Returns: 
             float: velocity of the tumor growth
         """
-        fit_func = lambda x, a, b: a * x - b
+        fit_func = lambda x, a, b: a * x + b
         skip = 100
-        popt, pcov = curve_fit(fit_func, xdata = range(len(self.model.N_Ts) - skip), ydata=self.model.radii[skip:])
-        velocity = popt[0]
-        self.offset = popt[1]
-        return velocity
+        popt, pcov = curve_fit(fit_func, xdata = range(100, len(self.model.N_Ts)), ydata=self.model.radii[skip:])
+        velocity, offset = popt
+        return velocity, offset
