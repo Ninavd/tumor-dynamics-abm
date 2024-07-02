@@ -1,6 +1,5 @@
-<img src="videos/tumor_growth-gif.gif" width="50%"/>
-
 # Agent-Based Tumor Growth
+<img src="videos/tumor_growth-gif.gif" width="50%"/>
 
 Project on ABM tumor growth for the Agent-Based Modeling course at the UvA 2023-2024 (group 15).
 
