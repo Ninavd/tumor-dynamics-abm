@@ -9,7 +9,7 @@ from mesa.space import MultiGrid, PropertyLayer
 from scipy.spatial import cKDTree
 
 from classes.tumor_cell import TumorCell
-from helpers import elect_non_zero
+from helpers import select_non_zero
 from classes.tumor_visualization_helper import TumorVisualizationHelper as TVH
 
 np.set_printoptions(threshold=sys.maxsize)
