@@ -5,6 +5,7 @@ from classes.tumor_visualizations import TumorVisualization
 from classes.tumor_visualization_helper import TumorVisualizationHelper
 import matplotlib.pyplot as plt
 import warnings
+import pandas as pd
 import math
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -26,11 +27,13 @@ def plot_with_CI(list_of_results, **kwargs):
     Plot the average progression of a list of results with confidence interval.
     """
     mean = np.mean(list_of_results, axis=0)
+    CI = calculate_CI(list_of_results)
+    
     plt.plot(mean, **kwargs)
-    CI = calculate_CI(mean)
     plt.fill_between(range(len(mean)), mean - CI, mean + CI, alpha=0.1)
     plt.grid()
     plt.xlabel('iteration')
+    return mean, CI
 
 if __name__ == "__main__":
     # set-up parsing command line arguments
@@ -89,7 +92,7 @@ if __name__ == "__main__":
         list_of_proportion_necrotic.append(necrotic_proportion)
 
         visualization_helper = TumorVisualizationHelper(model)
-        radius = visualization_helper.calculate_radial_distance()
+        radius = visualization_helper.radius_progression()
         roughness = visualization_helper.calculate_roughness_progression()
         list_of_radius.append(radius)
         list_of_roughness.append(roughness)
@@ -101,45 +104,64 @@ if __name__ == "__main__":
     print(list_of_proportion_proliferative)
 
     # absolute number of cells plot
-    plot_with_CI(list_of_proliferating_cells, label='proliferative')
-    plot_with_CI(list_of_invasive_cells, label='invasive')
-    plot_with_CI(list_of_necrotic_cells, label='necrotic')
+    prolif, prolif_conf = plot_with_CI(list_of_proliferating_cells, label='proliferative')
+    invasi, invasi_conf = plot_with_CI(list_of_invasive_cells, label='invasive')
+    necrot, necrot_conf = plot_with_CI(list_of_necrotic_cells, label='necrotic')
     plt.title(f'Number of Cell Types, Average of {args.n_runs} Runs')
     plt.ylabel('number of cells')
     plt.legend()
     plt.grid()
+    plt.savefig(f'./save_files/averaged_runs/absolute_cell_counts_{args.n_runs}_runs.png', dpi=300)
     plt.show()
 
     # Cell fraction plot
-    plot_with_CI(list_of_proportion_proliferative, label='proliferative')
-    plot_with_CI(list_of_proportion_invasive, label='invasive')
-    plot_with_CI(list_of_proportion_necrotic, label='necrotic')
+    prop_prolif, prop_prolif_conf = plot_with_CI(list_of_proportion_proliferative, label='proliferative')
+    prop_invasi, prop_invasi_conf = plot_with_CI(list_of_proportion_invasive, label='invasive')
+    prop_necrot, prop_necrot_conf = plot_with_CI(list_of_proportion_necrotic, label='necrotic')
     plt.title(f'Number of Cell Types, Average of {args.n_runs} Runs')
     plt.ylabel('fraction of cells')
     plt.legend()
     plt.grid()
+    plt.savefig(f'./save_files/averaged_runs/fraction_of_cells_{args.n_runs}_runs.png', dpi=300)
     plt.show()
 
     # Average radius progression
-    plot_with_CI(list_of_radius)
+    radii, radii_conf = plot_with_CI(list_of_radius)
     plt.title(f'Average Radial Distance From Tumor Center to Tumor Edge, Average of {args.n_runs} Runs')
     plt.ylabel('$\langle r \\rangle$')
     plt.grid()
+    plt.savefig(f'./save_files/averaged_runs/radius_{args.n_runs}_runs.png', dpi=300)
     plt.show()
 
     # Average roughness progression
-    plot_with_CI(list_of_roughness)
+    roughness, roughness_conf = plot_with_CI(list_of_roughness)
     plt.title(f'Average Roughness of Tumor Edge, Average of {args.n_runs} Runs')
     plt.ylabel('average roughness')
     plt.grid()
+    plt.savefig(f'./save_files/averaged_runs/roughness_{args.n_runs}_runs.png', dpi=300)
     plt.show()
 
     # Average velocity progression
-    plot_with_CI(list_of_velocities)
+    velocity, v_conf = plot_with_CI(list_of_velocities)
     plt.title('Average Velocity of the Tumor Over Time')
     plt.ylabel('$\langle v \\rangle$')
     plt.grid()
+    plt.savefig(f'./save_files/averaged_runs/velocity_{args.n_runs}_runs.png', dpi=300)
     plt.show()
 
-# TODO: save averages and confidence interval to csv
+    # TODO: save averages and confidence interval to csv
+    df = pd.DataFrame(
+        data = {
+        'P_count':prolif, 'P_count_conf':prolif_conf, 
+        'I_count':invasi, 'I_count_conf':invasi_conf, 
+        'N_count':necrot, 'N_count_conf':necrot_conf, 
+        'P_fraction':prop_prolif, 'P_fraction_conf':prop_prolif_conf, 
+        'I_fraction':prop_invasi, 'I_fraction_conf':prop_invasi_conf, 
+        'N_fraction':prop_necrot, 'N_fraction_conf':prop_necrot_conf,
+        'radius':radii, 'radius_conf':radii_conf, 
+        'roughness':roughness, 'roughness_conf':roughness_conf
+        }
+        )
+    df.to_csv(f'./save_files/averaged_runs/{args.n_runs}_runs_app_{args.alpha_pp}_api_{args.alpha_pi}_bii_{args.beta_ii}_bip_{args.beta_ip}_L_{args.L_grid}.csv')
+
 # TODO: implement running in parallel
