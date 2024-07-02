@@ -6,6 +6,8 @@ from classes.tumor_visualization_helper import TumorVisualizationHelper
 import matplotlib.pyplot as plt
 import warnings
 import pandas as pd
+import sys
+import datetime
 import math
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -67,6 +69,9 @@ if __name__ == "__main__":
     list_of_velocities = []
     
     # run main with provided arguments
+    sys.stdout = open('save_files/averaged_runs/output_log.txt', 'w') # redirect output to log file
+    sys.stderr = open('save_files/averaged_runs/error_log.txt', 'w') 
+    print('Runs started on:', datetime.datetime.now())
     for i in range(args.n_runs):
         model, steps = main(args.n_steps, args.L_grid, np.random.randint(1000), payoff, args.voronoi)
          
@@ -101,7 +106,6 @@ if __name__ == "__main__":
         list_of_velocities.append(velocity)
         
         print(f'Run {i+1} of {args.n_runs} completed\n')
-    print(list_of_proportion_proliferative)
 
     # absolute number of cells plot
     prolif, prolif_conf = plot_with_CI(list_of_proliferating_cells, label='proliferative')
@@ -112,7 +116,7 @@ if __name__ == "__main__":
     plt.legend()
     plt.grid()
     plt.savefig(f'./save_files/averaged_runs/absolute_cell_counts_{args.n_runs}_runs.png', dpi=300)
-    plt.show()
+    plt.close()
 
     # Cell fraction plot
     prop_prolif, prop_prolif_conf = plot_with_CI(list_of_proportion_proliferative, label='proliferative')
@@ -123,7 +127,7 @@ if __name__ == "__main__":
     plt.legend()
     plt.grid()
     plt.savefig(f'./save_files/averaged_runs/fraction_of_cells_{args.n_runs}_runs.png', dpi=300)
-    plt.show()
+    plt.close()
 
     # Average radius progression
     radii, radii_conf = plot_with_CI(list_of_radius)
@@ -131,7 +135,7 @@ if __name__ == "__main__":
     plt.ylabel('$\langle r \\rangle$')
     plt.grid()
     plt.savefig(f'./save_files/averaged_runs/radius_{args.n_runs}_runs.png', dpi=300)
-    plt.show()
+    plt.close()
 
     # Average roughness progression
     roughness, roughness_conf = plot_with_CI(list_of_roughness)
@@ -139,7 +143,7 @@ if __name__ == "__main__":
     plt.ylabel('average roughness')
     plt.grid()
     plt.savefig(f'./save_files/averaged_runs/roughness_{args.n_runs}_runs.png', dpi=300)
-    plt.show()
+    plt.close()
 
     # Average velocity progression
     velocity, v_conf = plot_with_CI(list_of_velocities)
@@ -147,7 +151,7 @@ if __name__ == "__main__":
     plt.ylabel('$\langle v \\rangle$')
     plt.grid()
     plt.savefig(f'./save_files/averaged_runs/velocity_{args.n_runs}_runs.png', dpi=300)
-    plt.show()
+    plt.close()
 
     # TODO: save averages and confidence interval to csv
     df = pd.DataFrame(
