@@ -6,11 +6,10 @@ import pickle
 
 from mesa import Model
 from mesa.space import MultiGrid, PropertyLayer 
-from mesa.datacollection import DataCollector
 from scipy.spatial import cKDTree
 
 from classes.tumor_cell import TumorCell
-from helpers import save_timestamp_metadata, select_non_zero
+from helpers import elect_non_zero
 from classes.tumor_visualization_helper import TumorVisualizationHelper as TVH
 
 np.set_printoptions(threshold=sys.maxsize)
@@ -85,8 +84,6 @@ class TumorGrowth(Model):
         
         self.distances = []
         self.delta_d = delta_d
-        # self.living_cell_distribution = []
-        # self.dead_cell_distribution = []
 
         self.proliferating_cells = [1]
         self.invasive_cells = [0]
@@ -114,7 +111,6 @@ class TumorGrowth(Model):
             for y in range(self.height):
 
                 value = np.random.uniform(0,1)
-                #value = 0.5
                 self.ecm_layer.set_cell((x, y), value)     
 
     def init_voronoi_ECM(self):
@@ -349,7 +345,7 @@ class TumorGrowth(Model):
         """Loads simulation data from file.
 
         Args:
-            timestamp (string): timestmap that the files were originally saved at (see filename you want to upload to find this value)
+            timestamp (string): timestamp that the files were originally saved at (see filename you want to upload to find this value)
         """
         timestamp = str(timestamp)
         with open(f'save_files/simulation_data_{timestamp}.pickle', 'r') as f:
