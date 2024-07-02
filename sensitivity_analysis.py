@@ -1,19 +1,23 @@
-import SALib
-from SALib.sample import sobol
-from SALib import ProblemSpec
-import numpy as np
 import matplotlib.pyplot as plt
-from classes.tumor_growth import TumorGrowth
+import numpy as np
+import os 
+import pandas as pd
 import pickle
 import time
-import os 
-
-import pandas as pd
+import SALib
 import warnings
+
+from SALib.sample import sobol
+from SALib import ProblemSpec
+from glob import glob
+
+from classes.tumor_growth import TumorGrowth
+
+# surpress annoying warning about new feature in mesa
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 problem = ProblemSpec({
-    'num_vars': 6, # reduce to ~5 using 1st order
+    'num_vars': 6, 
     'names': ['theta_p', 'theta_i', 'app', 'api', 'bip', 'bii'],
     'bounds': [[0.1, 0.5], [0.1, 0.5], [-0.95, 0], [-0.05, -0.01], [0.01, 0.05], [0, 0.95]]
 })
@@ -82,39 +86,39 @@ def run_model(param_values, **kwargs):
 problem = problem.sample(sobol.sample, distinct_samples, calc_second_order=False)
 
 # run model with the samples in parallel
-problem.evaluate(run_model, steps=steps, height=grid_size, width=grid_size, nprocs=12) # NOTE: can increase nprocs even more maybe
+problem.evaluate(run_model, steps=steps, height=grid_size, width=grid_size, nprocs=12) 
 
-from glob import glob
-
-pattern = f'*results_steps_{steps}_grid_{grid_size}_params_varied_{n_vars_varied}_id*'      # Replace with the pattern for matching file names
-output_file = f'{result_dir}/concatenated_results_steps_{steps}_grid_{grid_size}_params_varied_{n_vars_varied}.csv'
-
-# Find all CSV files in the specified directory matching the pattern
+# find all CSV files in the specified directory matching the pattern
+pattern = f'*results_steps_{steps}_grid_{grid_size}_params_varied_{n_vars_varied}_id*'  
 csv_files = glob(os.path.join(result_dir, pattern))
 print(csv_files)
 
-# Print matching files (for debugging)
+# print matching files (for debugging)
 print(f"Found {len(csv_files)} files: {csv_files}")
 
-# Read and concatenate all CSV files
+# read and concatenate all CSV files
 concatenated_df = pd.concat((pd.read_csv(f) for f in csv_files), ignore_index=True)
 
-# Write the result to a new CSV file
+# write the result to a new CSV file
+output_file = f'{result_dir}/concatenated_results_steps_{steps}_grid_{grid_size}_params_varied_{n_vars_varied}.csv'
 concatenated_df.to_csv(output_file, index=False)
 print(f"Concatenated CSV saved as: {output_file}")
 
+# perform sensitivity analysis on results
 Si_tumor = problem.analyze(SALib.analyze.sobol.analyze, calc_second_order=False, print_to_console=False)
-time_stamp = str(time.time()).split('.')[0]
 
+# pickle sensitivity analysis
+time_stamp = str(time.time()).split('.')[0]
 with open(f'{result_dir}/Si_tumor_{time_stamp}.pickle', 'wb') as file:
     pickle.dump(Si_tumor, file)
 with open(f'{result_dir}/problem_{time_stamp}.pickle', 'wb') as file:
     pickle.dump(problem, file)
 
-
+# save results of sensitivity analysis
 total, first = Si_tumor.to_df() # returns list of dfs 
 total.to_csv(f'{result_dir}/ST_tumor_diameter_steps_{steps}_grid_{grid_size}_params_varied_{n_vars_varied}.csv')
 first.to_csv(f'{result_dir}/S1_tumor_diameter_steps_{steps}_grid_{grid_size}_params_varied_{n_vars_varied}.csv')
 
+# plot first and total order sensitivity
 axes = Si_tumor.plot()
 plt.show()
