@@ -46,7 +46,7 @@ def main(steps, L, seed, payoff, voronoi, summary, save, show_plot, animate):
         stepsize = int(len(model.N_Ts) / n_frames)
         frames = model.N_Ts[::stepsize]
         
-        title = f'videos/{steps_taken}_steps_{model.distribution}_ECM_seed{seed}.mp4'
+        title = f'{steps_taken}_steps_{model.distribution}_ECM_seed{seed}'
         
         build_and_save_animation(frames, title=title, iterations=n_frames)
 
