@@ -13,16 +13,16 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 problem = ProblemSpec({
-    'num_vars': 10, # reduce to ~5 using 1st order
-    'names': ['D', 'k', 'gamma', 'phi_c', 'theta_p', 'theta_i', 'app', 'api', 'bip', 'bii'],
-    'bounds': [[10**(-5), 10**(-3)], [0.01, 0.05], [5*10**(-5), 5*10**(-3)], [0.01, 0.05], [0.1, 0.5], [0.1, 0.5], [-0.95, 0], [-0.05, -0.01], [0.01, 0.05], [0, 0.95]]
+    'num_vars': 6, # reduce to ~5 using 1st order
+    'names': ['theta_p', 'theta_i', 'app', 'api', 'bip', 'bii'],
+    'bounds': [[0.1, 0.5], [0.1, 0.5], [-0.95, 0], [-0.05, -0.01], [0.01, 0.05], [0, 0.95]]
 })
 
 n_vars_varied = problem['num_vars']
-distinct_samples = 128 #1024 # NOTE: use small value for testing
+distinct_samples = 1024 #1024 # NOTE: use small value for testing
 grid_size = 101
 steps = 1000
-distribution = 'uniform'
+distribution = 'voronoi'
 result_dir = f'./save_files/SA_analysis_{distinct_samples}_distinct_samples_{distribution}'
 
 if not os.path.exists(result_dir):
@@ -34,22 +34,18 @@ def run_model(param_values, **kwargs):
     """
     print(f"run {param_values.shape} on pid {os.getpid()}")
 
-    params = ['D', 'k', 'gamma', 'phi_c', 'theta_p', 'theta_i', 'app', 'api', 'bip', 'bii', 'diameter', 'roughness', 'living_agents', 'velocity', 'steps_taken', 'model_id']
+    params = ['theta_p', 'theta_i', 'app', 'api', 'bip', 'bii', 'diameter', 'roughness', 'living_agents', 'velocity', 'steps_taken', 'model_id']
     results_dict = {param:[] for param in params}
 
     results = np.zeros(param_values.shape[0])
     for i, params in enumerate(param_values):
         model = TumorGrowth(
-            D = params[0],
-            k = params[1],
-            gamma = params[2],
-            phi_c = params[3],
-            theta_p = params[4],
-            theta_i=params[5],
-            app = params[6],
-            api = params[7],
-            bip = params[8],
-            bii = params[9],
+            theta_p = params[0],
+            theta_i=params[1],
+            app = params[2],
+            api = params[3],
+            bip = params[4],
+            bii = params[5],
             steps = steps, # NOTE: choose 100 for testing
             delta_d = 200,            
             **kwargs
@@ -87,7 +83,7 @@ def run_model(param_values, **kwargs):
 problem = problem.sample(sobol.sample, distinct_samples, calc_second_order=False)
 
 # run model with the samples in parallel
-problem.evaluate(run_model, steps=steps, height=grid_size, width=grid_size, nprocs=12) # NOTE: can increase nprocs even more maybe
+problem.evaluate(run_model, height=grid_size, width=grid_size, nprocs=12) # NOTE: can increase nprocs even more maybe
 
 from glob import glob
 
