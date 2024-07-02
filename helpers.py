@@ -91,7 +91,7 @@ def build_and_save_animation(data_frames, title, iterations):
         iterations: Number of frames needed.
     """
     fig = plt.figure()
-    im = plt.imshow(np.random.randint(low=0, high=data_frames[-1].max(), size=(5, 5)), animated=True, interpolation="nearest", origin="upper", cmap='BuPu')
+    im = plt.imshow(np.random.randint(low=0, high=data_frames[-1].max(), size=data_frames[0].shape), animated=True, interpolation="nearest", origin="upper", cmap='BuPu')
     plt.colorbar()
 
     def animate(frame_number):
