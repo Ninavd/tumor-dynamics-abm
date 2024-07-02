@@ -232,15 +232,9 @@ class TumorGrowth(Model):
     def cell_step(self):
         """
         All agents proliferate or invade (based on current state). 
-        Agents activated in random order to prevent directional bias.
+        Agents are activated in random order to prevent uniform directional bias.
         Updates the distribution of agents across the grid.
         """
-        # update steps depend on CURRENT cell distribution
-        # N_T_copy = copy.copy(self.N_T) Remove this??
-        # NOTE: Ja het idee was om die copy te gebruiken voor N_T, zodat ze bewegen op basis van de huidige cel verdeling
-        # ipv dat het steeds verandert, dus om ervoor te zorgen dat N_T in de formules die van de huidige timestep is, voordat ze gingen bewegen
-        # maar miss maakt het niet uit omdat ze nu in random volgorde bewegen..
-
         for agent in self.agents.shuffle():
             agent.step()
 
@@ -282,38 +276,24 @@ class TumorGrowth(Model):
     def run_model(self):
         """
         Grow tumour for number of steps or until tumour touches border.
+
+        Returns:
+            results (tuple) - Radius, number of agents, roughness, growth velocity and timestep 
         """
         for i in range(self.steps):
             print(f'Running... step: {i+1}/{self.steps}         ', end='\r')
 
+            # stop simulation if tumor touches border
             if self.touches_border():
                 print("\n Simulation stopped: Tumor touches border")
-                roughness = self.TVH.calculate_roughness(self.N_T, self.Nec)
-                self.radii = self.TVH.radius_progression()
-                velocity = self.TVH.velocity_linear_fit()    
-                # velocity = np.mean(self.TVH.calculate_velocities())
-                return self.TVH.radius(self.N_T), len(self.agents), roughness, velocity, i
+                results = self.collect_results(i)
+                return results
             
             self.step() 
             self.save_iteration_data()
         
-        roughness = self.TVH.calculate_roughness(self.N_Ts[-1], self.Necs[-1])
-        self.radii = self.TVH.radius_progression()
-        velocity = self.TVH.velocity_linear_fit()
-        # velocity = np.mean(self.TVH.calculate_velocities())
-        return self.TVH.radius(self.N_T), len(self.agents), roughness, velocity, self.steps
-
-
-    def cell_distribution(self, iteration: int):
-        """
-        return cell counts for every grid cell as 2d array
-
-        Args:
-            iteration: which state to use for calculation.
-        """
-        N_T = self.N_Ts[iteration]
-        Nec = self.Necs[iteration]
-        return N_T[N_T != 0], Nec[Nec != 0]
+        results = self.collect_results(self.steps)
+        return results
     
     def touches_border(self) -> bool:
         """
@@ -322,6 +302,9 @@ class TumorGrowth(Model):
         return sum(self.N_T[:, 0] + self.N_T[0, :] + self.N_T[:, self.height - 1] + self.N_T[self.width - 1, :]) != 0
         
     def save_iteration_data(self):
+        """
+        Save snapshots of current timestep.
+        """
         self.ecm_layers.append(copy.deepcopy(self.ecm_layer.data))
         self.nutrient_layers.append(copy.deepcopy(self.nutrient_layer.data))
         self.N_Ts.append(copy.deepcopy(self.N_T))
@@ -329,6 +312,18 @@ class TumorGrowth(Model):
         self.births.append(copy.copy(self.number_births))
         self.deaths.append(copy.copy(self.number_deaths))
     
+    def collect_results(self, step):
+        """
+        Collect final stats of the simulation.
+        """
+        roughness = self.TVH.calculate_roughness(self.N_Ts[-1], self.Necs[-1])
+        self.radii = self.TVH.radius_progression()
+        radius = self.TVH.radius(self.N_T)
+        velocity = self.TVH.velocity_linear_fit()
+        # velocity = np.mean(self.TVH.calculate_velocities())
+        n_agents = len(self.agents)
+        return radius, n_agents, roughness, velocity, step
+
     def save_simulation_results_to_file(self):
         """
         Save simulation results to a file. Namely the parameters in a txt file and the results stored in self.ECM, Nutrient, N_T, Births, Deaths lists as a pkl file. 
