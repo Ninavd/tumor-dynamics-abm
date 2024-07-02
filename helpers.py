@@ -104,3 +104,28 @@ def build_and_save_animation(data_frames, title, iterations):
     writervideo = animation.FFMpegWriter(fps=15) 
     anim.save(f'videos/{title}.mp4', writer=writervideo) 
     plt.close()
+
+def print_summary_message(model, steps_taken, payoff, roughness, radius, velocity):
+    """
+    Prints summary message of completed simulation.
+    """
+
+    print(
+            f"""
+            +--------------------------+---------------------------------+
+            |                       SUMMARY                              |
+            +--------------------------+---------------------------------+
+            | Iterations               | {steps_taken:<31} |
+            | Grid size                | {str(model.width)+'x'+str(model.height):<31} |
+            | Seed                     | {model.seed:<31} |
+            | Payoff matrix            | {repr(payoff):<31} |
+            | ECM                      | {model.distribution:<31} |
+            | Final #(proliferating)   | {model.proliferating_cells[-1]:<31} |
+            | Final #(invasive)        | {model.invasive_cells[-1]:<31} |
+            | Final #(necrotic)        | {model.necrotic_cells[-1]:<31} |
+            | Final roughness          | {roughness:<31.3f} |
+            | Final tumor size         | {radius:<31.3f} |
+            | Average growth velocity  | {velocity:<31.3f} |
+            +--------------------------+---------------------------------+
+            """
+        )
