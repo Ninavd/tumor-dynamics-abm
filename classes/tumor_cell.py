@@ -18,8 +18,6 @@ class TumorCell(Agent):
         self.seed = seed
         np.random.seed(self.seed)
         random.seed(self.seed)
-        
-        self.nutrient_threshold = 0.02
 
     def generate_next_state(self, nutrient_score):
         """
@@ -48,6 +46,7 @@ class TumorCell(Agent):
             which (str): which probability to return, invasive or proliferate.
         """
         assert which in ['invasive', 'proliferate'], 'which must be invasive or proliferate' 
+        
         proliferate = (which == 'proliferate')
         theta = self.model.theta_p if proliferate else self.model.theta_i
         left = e**(-(nutrient_score / (self.model.N_T[self.pos] * theta))**2)
