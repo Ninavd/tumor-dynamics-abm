@@ -207,10 +207,8 @@ class TumorVisualization():
         """
         Plot the radial distance of the tumor from the center of the grid.
         """
-        # tvh = TVH(self.model)
-        radial_distance = self.TVH.calculate_radial_distance()
-        plt.plot(radial_distance)
-        velocity = self.TVH.linear_fit()
+        plt.plot(self.model.radii)
+        velocity = self.TVH.velocity_linear_fit()
         offset = 0
         linear_func = lambda a, b, x : a*x + b
         plt.plot(range(len(self.model.N_Ts)), [linear_func(velocity, offset, x) for x in range(len(self.model.N_Ts))], color='orange')
@@ -224,7 +222,7 @@ class TumorVisualization():
         """
         Plot the roughness of the tumor.
         """
-        roughness_values = self.TVH.calculate_roughness()
+        roughness_values = self.TVH.calculate_roughness_progression()
         plt.plot(roughness_values)
         plt.title('Roughness of the Tumor Over Time')
         plt.xlabel('Iteration')

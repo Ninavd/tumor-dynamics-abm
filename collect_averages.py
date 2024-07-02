@@ -5,8 +5,8 @@ from classes.tumor_visualizations import TumorVisualization
 from classes.tumor_visualization_helper import TumorVisualizationHelper
 import matplotlib.pyplot as plt
 import warnings
+import pandas as pd
 import math
-from helpers import save_timestamp_metadata, build_and_save_animation
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def main(steps, L, seed, payoff, voronoi):
@@ -22,6 +22,19 @@ def calculate_CI(x, z = 1.96):
     confidence_interval = z * stdev / math.sqrt(np.array(x).shape[0])
     return confidence_interval
 
+def plot_with_CI(list_of_results, **kwargs):
+    """
+    Plot the average progression of a list of results with confidence interval.
+    """
+    mean = np.mean(list_of_results, axis=0)
+    CI = calculate_CI(list_of_results)
+    
+    plt.plot(mean, **kwargs)
+    plt.fill_between(range(len(mean)), mean - CI, mean + CI, alpha=0.1)
+    plt.grid()
+    plt.xlabel('iteration')
+    return mean, CI
+
 if __name__ == "__main__":
     # set-up parsing command line arguments
     parser = argparse.ArgumentParser(description="Simulate Agent-Based tumor growth and save results")
@@ -36,7 +49,6 @@ if __name__ == "__main__":
     parser.add_argument("-bii", "--beta_ii", help="invasive probability change when encountering an invasive cell", default=0.1, type=float)
     parser.add_argument("-bip", "--beta_ip", help="invasive probability change when encountering an proliferative cell", default=0.02, type=float)
     parser.add_argument('--voronoi', action="store_true", help="Initialize ECM grid as voronoi diagram instead of uniform")
-    parser.add_argument("--show_plot", action="store_true", help="show plot of final tumor")
 
     # read arguments from command line
     args = parser.parse_args()
@@ -45,60 +57,43 @@ if __name__ == "__main__":
         [args.alpha_pp, args.alpha_pi], 
         [args.beta_ip, args.beta_ii]
         ]
-    list_of_ecm_layers = []
-    list_of_nutrient_layers = []
-    list_of_N_Ts = []
-    list_of_Necs = []
-    list_of_births = []
-    list_of_deaths = []
-    list_of_proliferating_cells = []
-    list_of_invasive_cells = []
-    list_of_necrotic_cells = []
-    list_of_proportion_proliferative = []
-    list_of_proportion_invasive = []
-    list_of_proportion_necrotic = []
+    
+    list_of_proliferating_cells, list_of_invasive_cells, list_of_necrotic_cells = [], [], []
+
+    list_of_proportion_proliferative, list_of_proportion_invasive, list_of_proportion_necrotic = [], [], []
+
     list_of_radius = []
     list_of_roughness = []
     list_of_velocities = []
     
-
     # run main with provided arguments
     for i in range(args.n_runs):
-        model, steps = main(
-            args.n_steps, args.L_grid, np.random.randint(1000), payoff, args.voronoi) 
+        model, steps = main(args.n_steps, args.L_grid, np.random.randint(1000), payoff, args.voronoi)
+         
         if steps != args.n_steps:
             print(f'Run {i+1} of {args.n_runs} skipped due to early stopping at step {steps}')
             continue
-        ecm_layers = model.ecm_layers
-        nutrient_layers = model.nutrient_layers
-        N_Ts = model.N_Ts
-        Necs = model.Necs
-        births = model.births
-        deaths = model.deaths
+
         proliferating_cells = model.proliferating_cells
         invasive_cells = model.invasive_cells
         necrotic_cells = model.necrotic_cells
         total_cells = np.array(proliferating_cells) + np.array(invasive_cells) + np.array(necrotic_cells)
+
         proliferating_proportion = np.array(proliferating_cells)/total_cells
         invasive_proportion = np.array(invasive_cells)/total_cells
         necrotic_proportion = np.array(necrotic_cells)/total_cells
 
-        list_of_ecm_layers.append(ecm_layers)
-        list_of_nutrient_layers.append(nutrient_layers)
-        list_of_N_Ts.append(N_Ts)
-        list_of_Necs.append(Necs)
-        list_of_births.append(births)
-        list_of_deaths.append(deaths)
         list_of_proliferating_cells.append(proliferating_cells)
         list_of_invasive_cells.append(invasive_cells)
         list_of_necrotic_cells.append(necrotic_cells)
+
         list_of_proportion_proliferative.append(proliferating_proportion)
         list_of_proportion_invasive.append(invasive_proportion)
         list_of_proportion_necrotic.append(necrotic_proportion)
 
         visualization_helper = TumorVisualizationHelper(model)
-        radius = visualization_helper.calculate_radial_distance()
-        roughness = visualization_helper.calculate_roughness()
+        radius = visualization_helper.radius_progression()
+        roughness = visualization_helper.calculate_roughness_progression()
         list_of_radius.append(radius)
         list_of_roughness.append(roughness)
 
@@ -108,80 +103,65 @@ if __name__ == "__main__":
         print(f'Run {i+1} of {args.n_runs} completed\n')
     print(list_of_proportion_proliferative)
 
-    # average_proliferating_cells = np.mean(list_of_proliferating_cells, axis=0)
-    # average_invasive_cells = np.mean(list_of_invasive_cells, axis=0)
-    # average_necrotic_cells = np.mean(list_of_necrotic_cells, axis=0)
-    # prolif_CI = calculate_CI(list_of_proliferating_cells)
-    # invasive_CI = calculate_CI(list_of_invasive_cells)
-    # necrotic_CI = calculate_CI(list_of_necrotic_cells)
-
-    # plt.plot(average_proliferating_cells, label='Proliferating')
-    # plt.plot(average_invasive_cells, label='Invasive')
-    # plt.plot(average_necrotic_cells, label='Necrotic')
-    # plt.fill_between([*range(len(average_proliferating_cells))], (average_proliferating_cells-prolif_CI), (average_proliferating_cells+prolif_CI), color='b', alpha=0.1)
-    # plt.fill_between([*range(len(average_invasive_cells))], (average_invasive_cells-invasive_CI), (average_invasive_cells+invasive_CI), color='orange', alpha=0.1)
-    # plt.fill_between([*range(len(average_proliferating_cells))], (average_necrotic_cells-necrotic_CI), (average_necrotic_cells+necrotic_CI), color='g', alpha=0.1)
-    # plt.title(f'Number of Cell Types, Average of {args.n_runs} Runs')
-    # plt.xlabel('Iteration')
-    # plt.ylabel('Number of Cells')
-    # plt.legend()
-    # plt.grid()
-    # plt.show()
-
-    # # go through all runs and calculate averages of the proportions of cell types
-    # average_necrotic_proportion = np.mean(list_of_proportion_necrotic, axis=0)
-    # average_prolif_proportion = np.mean(list_of_proportion_proliferative, axis=0)
-    # average_invasive_proportion = np.mean(list_of_proportion_invasive, axis=0)
-
-    # necrotic_proportion_CI = calculate_CI(list_of_proportion_necrotic)
-    # prolif_proportion_CI = calculate_CI(list_of_proportion_proliferative)
-    # invasive_proportion_CI = calculate_CI(list_of_proportion_invasive)
-
-    # plt.plot(average_prolif_proportion, label='Proliferating')
-    # plt.plot(average_invasive_proportion, label='Invasive')
-    # plt.plot(average_necrotic_proportion, label='Necrotic')
-    # plt.fill_between([*range(len(average_prolif_proportion))], (average_prolif_proportion-prolif_proportion_CI), (average_prolif_proportion+prolif_proportion_CI), color='b', alpha=0.1)
-    # plt.fill_between([*range(len(average_invasive_proportion))], (average_invasive_proportion-invasive_proportion_CI), (average_invasive_proportion+invasive_proportion_CI), color='orange', alpha=0.1)
-    # plt.fill_between([*range(len(average_necrotic_proportion))], (average_necrotic_proportion-necrotic_proportion_CI), (average_necrotic_proportion+necrotic_proportion_CI), color='g', alpha=0.1)
-    # plt.title(f'Proportion of Cell Types, Average of {args.n_runs} runs')
-    # plt.xlabel('Iteration')
-    # plt.ylabel('Proportion')
-    # plt.legend()
-    # plt.grid()
-    # plt.show()
-
-    # average_radius = np.mean(list_of_radius, axis=0)
-    # radius_CI = calculate_CI(list_of_radius)
-    # plt.plot(average_radius, label = 'Radius')
-    # plt.fill_between([*range(len(average_radius))], (average_radius-radius_CI), (average_radius+radius_CI), color='b', alpha=0.1)
-    # plt.title(f'Average Radial Distance From Tumor Center to Tumor Edge, Average of {args.n_runs} Runs')
-    # plt.xlabel('Iteration')
-    # plt.ylabel('Average Radial Distance')
-    # plt.legend()
-    # plt.grid()
-    # plt.show()
-
-    # average_roughness = np.mean(list_of_roughness, axis=0)
-    # roughness_CI = calculate_CI(list_of_roughness)
-    # plt.plot(average_roughness, label = 'Roughness')
-    # plt.fill_between([*range(len(average_roughness))], (average_roughness-roughness_CI), (average_roughness+roughness_CI), color='b', alpha=0.1)
-    # plt.title(f'Average Roughness of Tumor Edge, Average of {args.n_runs} Runs')
-    # plt.xlabel('Iteration')
-    # plt.ylabel('Average Roughness')
-    # plt.legend()
-    # plt.grid()
-    # plt.show()
-
-   
-    # plot the average velocity of the tumor over time
-    # go through all runs and calculate averages of the proportions of cell types
-    print(list_of_velocities)
-    average_velocity = np.mean(list_of_velocities, axis=0)
-    velocity_CI = calculate_CI(average_velocity)
-    plt.plot(average_velocity, label='Velocity')
-    plt.fill_between([*range(len(average_velocity))], (average_velocity-velocity_CI), (average_velocity+velocity_CI), color='b', alpha=0.1)
-    plt.title('Average Velocity of the Tumor Over Time')
-    plt.xlabel('Iteration')
-    plt.ylabel('Average Velocity of the Tumor')
+    # absolute number of cells plot
+    prolif, prolif_conf = plot_with_CI(list_of_proliferating_cells, label='proliferative')
+    invasi, invasi_conf = plot_with_CI(list_of_invasive_cells, label='invasive')
+    necrot, necrot_conf = plot_with_CI(list_of_necrotic_cells, label='necrotic')
+    plt.title(f'Number of Cell Types, Average of {args.n_runs} Runs')
+    plt.ylabel('number of cells')
+    plt.legend()
     plt.grid()
+    plt.savefig(f'./save_files/averaged_runs/absolute_cell_counts_{args.n_runs}_runs.png', dpi=300)
     plt.show()
+
+    # Cell fraction plot
+    prop_prolif, prop_prolif_conf = plot_with_CI(list_of_proportion_proliferative, label='proliferative')
+    prop_invasi, prop_invasi_conf = plot_with_CI(list_of_proportion_invasive, label='invasive')
+    prop_necrot, prop_necrot_conf = plot_with_CI(list_of_proportion_necrotic, label='necrotic')
+    plt.title(f'Number of Cell Types, Average of {args.n_runs} Runs')
+    plt.ylabel('fraction of cells')
+    plt.legend()
+    plt.grid()
+    plt.savefig(f'./save_files/averaged_runs/fraction_of_cells_{args.n_runs}_runs.png', dpi=300)
+    plt.show()
+
+    # Average radius progression
+    radii, radii_conf = plot_with_CI(list_of_radius)
+    plt.title(f'Average Radial Distance From Tumor Center to Tumor Edge, Average of {args.n_runs} Runs')
+    plt.ylabel('$\langle r \\rangle$')
+    plt.grid()
+    plt.savefig(f'./save_files/averaged_runs/radius_{args.n_runs}_runs.png', dpi=300)
+    plt.show()
+
+    # Average roughness progression
+    roughness, roughness_conf = plot_with_CI(list_of_roughness)
+    plt.title(f'Average Roughness of Tumor Edge, Average of {args.n_runs} Runs')
+    plt.ylabel('average roughness')
+    plt.grid()
+    plt.savefig(f'./save_files/averaged_runs/roughness_{args.n_runs}_runs.png', dpi=300)
+    plt.show()
+
+    # Average velocity progression
+    velocity, v_conf = plot_with_CI(list_of_velocities)
+    plt.title('Average Velocity of the Tumor Over Time')
+    plt.ylabel('$\langle v \\rangle$')
+    plt.grid()
+    plt.savefig(f'./save_files/averaged_runs/velocity_{args.n_runs}_runs.png', dpi=300)
+    plt.show()
+
+    # TODO: save averages and confidence interval to csv
+    df = pd.DataFrame(
+        data = {
+        'P_count':prolif, 'P_count_conf':prolif_conf, 
+        'I_count':invasi, 'I_count_conf':invasi_conf, 
+        'N_count':necrot, 'N_count_conf':necrot_conf, 
+        'P_fraction':prop_prolif, 'P_fraction_conf':prop_prolif_conf, 
+        'I_fraction':prop_invasi, 'I_fraction_conf':prop_invasi_conf, 
+        'N_fraction':prop_necrot, 'N_fraction_conf':prop_necrot_conf,
+        'radius':radii, 'radius_conf':radii_conf, 
+        'roughness':roughness, 'roughness_conf':roughness_conf
+        }
+        )
+    df.to_csv(f'./save_files/averaged_runs/{args.n_runs}_runs_app_{args.alpha_pp}_api_{args.alpha_pi}_bii_{args.beta_ii}_bip_{args.beta_ip}_L_{args.L_grid}.csv')
+
+# TODO: implement running in parallel

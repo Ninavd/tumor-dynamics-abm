@@ -21,9 +21,8 @@ def run_model(params):
     seed = np.random.randint(0, 1000)
     model = TumorGrowth(steps=params['steps'], width=params['size'], height=params['size'], seed=seed)
     radius, n_agents, roughness, velocity, steps = model.run_model() 
-    radius_progression = TVH(model).calculate_radial_distance() # TODO: maybe better to return as array
     # TODO: add collect statistics method to tumorgrowth and return model?
-    return radius_progression
+    return model.radii, TVH(model).calculate_roughness_progression(), 
 
 if __name__ == '__main__':
     # define run parameters
