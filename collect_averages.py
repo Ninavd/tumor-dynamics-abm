@@ -135,7 +135,7 @@ if __name__ == "__main__":
 
     # Average radius progression
     radii, radii_conf = plot_with_CI(list_of_radius)
-    plt.title(f'Average Radial Distance From Tumor Center to Tumor Edge, Average of {args.n_runs} Runs')
+    plt.title(f'Average Radial Distance From Tumor Center to Tumor Edge \n Average of {args.n_runs} Runs')
     plt.ylabel('$\langle r \\rangle$')
     plt.grid()
     plt.savefig(f'./save_files/averaged_runs/radius_{args.n_runs}_runs_{voronoi_str}.png', dpi=300)
