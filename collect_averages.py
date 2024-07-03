@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     # adding arguments
     parser.add_argument("n_steps", help="max number of time steps used in simulation", default=1000, type=int)
-    parser.add_argument("L_grid", help="Width of grid in number of cells", default=201, type=int)
+    parser.add_argument("L_grid", help="Width of grid in number of cells", default=101, type=int)
     parser.add_argument("n_runs", help="Number of runs to average", default = 50, type=int)
     parser.add_argument("-s", "--seed", help="provide seed of simulation", default=np.random.randint(1000), type=int)
     parser.add_argument("-api", "--alpha_pi", help="proliferative probability change when encountering an invasive cell", default=-0.02, type=float)
