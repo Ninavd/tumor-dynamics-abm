@@ -1,7 +1,6 @@
 import argparse
 import numpy as np
 from classes.tumor_growth import TumorGrowth
-from classes.tumor_visualizations import TumorVisualization
 from classes.tumor_visualization_helper import TumorVisualizationHelper
 import matplotlib.pyplot as plt
 import warnings
@@ -72,6 +71,7 @@ if __name__ == "__main__":
     sys.stdout = open('save_files/averaged_runs/output_log.txt', 'w') # redirect output to log file
     sys.stderr = open('save_files/averaged_runs/error_log.txt', 'w') 
     print('Runs started on:', datetime.datetime.now())
+    
     for i in range(args.n_runs):
         model, steps = main(args.n_steps, args.L_grid, np.random.randint(1000), payoff, args.voronoi)
          
@@ -107,6 +107,8 @@ if __name__ == "__main__":
         
         print(f'Run {i+1} of {args.n_runs} completed\n')
 
+    distribution = 'voronoi' if args.voronoi else 'uniform'
+
     # absolute number of cells plot
     prolif, prolif_conf = plot_with_CI(list_of_proliferating_cells, label='proliferative')
     invasi, invasi_conf = plot_with_CI(list_of_invasive_cells, label='invasive')
@@ -115,7 +117,7 @@ if __name__ == "__main__":
     plt.ylabel('number of cells')
     plt.legend()
     plt.grid()
-    plt.savefig(f'./save_files/averaged_runs/absolute_cell_counts_{args.n_runs}_runs.png', dpi=300)
+    plt.savefig(f'./save_files/averaged_runs/{distribution}_absolute_cell_counts_{args.n_runs}_runs.png', dpi=300)
     plt.close()
 
     # Cell fraction plot
@@ -126,7 +128,7 @@ if __name__ == "__main__":
     plt.ylabel('fraction of cells')
     plt.legend()
     plt.grid()
-    plt.savefig(f'./save_files/averaged_runs/fraction_of_cells_{args.n_runs}_runs.png', dpi=300)
+    plt.savefig(f'./save_files/averaged_runs/{distribution}_fraction_of_cells_{args.n_runs}_runs.png', dpi=300)
     plt.close()
 
     # Average radius progression
@@ -134,7 +136,7 @@ if __name__ == "__main__":
     plt.title(f'Average Radial Distance From Tumor Center to Tumor Edge, Average of {args.n_runs} Runs')
     plt.ylabel('$\langle r \\rangle$')
     plt.grid()
-    plt.savefig(f'./save_files/averaged_runs/radius_{args.n_runs}_runs.png', dpi=300)
+    plt.savefig(f'./save_files/averaged_runs/{distribution}_radius_{args.n_runs}_runs.png', dpi=300)
     plt.close()
 
     # Average roughness progression
@@ -142,7 +144,7 @@ if __name__ == "__main__":
     plt.title(f'Average Roughness of Tumor Edge, Average of {args.n_runs} Runs')
     plt.ylabel('average roughness')
     plt.grid()
-    plt.savefig(f'./save_files/averaged_runs/roughness_{args.n_runs}_runs.png', dpi=300)
+    plt.savefig(f'./save_files/averaged_runs/{distribution}_roughness_{args.n_runs}_runs.png', dpi=300)
     plt.close()
 
     # Average velocity progression
@@ -150,7 +152,7 @@ if __name__ == "__main__":
     plt.title('Average Velocity of the Tumor Over Time')
     plt.ylabel('$\langle v \\rangle$')
     plt.grid()
-    plt.savefig(f'./save_files/averaged_runs/velocity_{args.n_runs}_runs.png', dpi=300)
+    plt.savefig(f'./save_files/averaged_runs/{distribution}_velocity_{args.n_runs}_runs.png', dpi=300)
     plt.close()
 
     # TODO: save averages and confidence interval to csv
@@ -166,6 +168,6 @@ if __name__ == "__main__":
         'roughness':roughness, 'roughness_conf':roughness_conf
         }
         )
-    df.to_csv(f'./save_files/averaged_runs/{args.n_runs}_runs_app_{args.alpha_pp}_api_{args.alpha_pi}_bii_{args.beta_ii}_bip_{args.beta_ip}_L_{args.L_grid}.csv')
+    df.to_csv(f'./save_files/averaged_runs/{distribution}_{args.n_runs}_runs_app_{args.alpha_pp}_api_{args.alpha_pi}_bii_{args.beta_ii}_bip_{args.beta_ip}_L_{args.L_grid}.csv')
 
 # TODO: implement running in parallel
