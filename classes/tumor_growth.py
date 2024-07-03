@@ -6,6 +6,7 @@ import pickle
 
 from mesa import Model
 from mesa.space import MultiGrid, PropertyLayer 
+from mesa.time import RandomActivation
 from scipy.spatial import cKDTree
 
 from classes.tumor_cell import TumorCell
@@ -25,6 +26,7 @@ class TumorGrowth(Model):
                 seed = 913, distribution= 'uniform'):
         
         super().__init__(seed=seed)
+        self.scheduler = RandomActivation(self)
         self.TVH = TVH(self)
 
         self.height = height
@@ -117,7 +119,7 @@ class TumorGrowth(Model):
         """
         Initializes the ECM for a voronoi tesselation.
         """
-        num_seed_points = round(self.height/2)
+        num_seed_points = self.height
         
         seed_points = np.random.rand(num_seed_points, 2)
         seed_points[:, 0] *= self.width
@@ -151,6 +153,7 @@ class TumorGrowth(Model):
         self.grid.place_agent(tumorcell, pos)
         self.N_T[pos] += 1
         self.number_births += 1
+        self.scheduler.add(tumorcell)
     
     def displace_agent(self, agent: TumorCell, new_pos):
         """
@@ -218,6 +221,7 @@ class TumorGrowth(Model):
                 self.number_deaths += 1
                 self.N_T[agent.pos] -= 1
                 self.Nec[agent.pos] += 1
+                self.scheduler.remove(agent)
                 agent.die()
 
     def new_state(self):
@@ -269,7 +273,8 @@ class TumorGrowth(Model):
         # determine cell proliferation or migration
         self.new_state()
         # update cell distribution
-        self.cell_step()
+        # self.cell_step()
+        self.scheduler.step()
         # count number of cells of each state
         self.count_states()
 
@@ -286,12 +291,14 @@ class TumorGrowth(Model):
             # stop simulation if tumor touches border
             if self.touches_border():
                 print("\n Simulation stopped: Tumor touches border")
+                self.running = False
                 results = self.collect_results(i)
                 return results
             
             self.step() 
             self.save_iteration_data()
         
+        self.running = False
         results = self.collect_results(self.steps)
         return results
     
