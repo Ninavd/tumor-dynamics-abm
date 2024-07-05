@@ -232,15 +232,6 @@ class TumorGrowth(Model):
             phi = self.nutrient_layer.data[agent.pos]
             if agent.state != 'necrotic':
                 agent.generate_next_state(phi)
-             
-    def cell_step(self):
-        """
-        All agents proliferate or invade (based on current state). 
-        Agents are activated in random order to prevent uniform directional bias.
-        Updates the distribution of agents across the grid.
-        """
-        for agent in self.agents.shuffle():
-            agent.step()
 
     def count_states(self):
         """
@@ -272,8 +263,7 @@ class TumorGrowth(Model):
         self.cell_death()
         # determine cell proliferation or migration
         self.new_state()
-        # update cell distribution
-        # self.cell_step()
+        # randomly activate agents
         self.scheduler.step()
         # count number of cells of each state
         self.count_states()
