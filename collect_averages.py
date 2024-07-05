@@ -19,6 +19,9 @@ def main(steps, L, seed, payoff, voronoi):
     return model, steps
 
 def calculate_CI(x, z = 1.96):
+    """
+    Find confidence interval of list of run results.
+    """
     stdev = np.std(x, axis=0)
     confidence_interval = z * stdev / math.sqrt(np.array(x).shape[0])
     return confidence_interval
@@ -155,7 +158,7 @@ if __name__ == "__main__":
     plt.savefig(f'./save_files/averaged_runs/{distribution}_velocity_{args.n_runs}_runs.png', dpi=300)
     plt.close()
 
-    # TODO: save averages and confidence interval to csv
+    # save averages and confidence interval to csv
     df = pd.DataFrame(
         data = {
         'P_count':prolif, 'P_count_conf':prolif_conf, 
