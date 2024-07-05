@@ -1,17 +1,31 @@
 import mesa
 import random
+import warnings
 
 from classes.tumor_growth import TumorGrowth
 from mesa.datacollection import DataCollector
+
+# surpress warning about new PropertyLayer class of mesa
+warnings.simplefilter(action='ignore', category=FutureWarning)
 
 class TumorWrapper(TumorGrowth):
     """
     To accomodate the interactive simulation, the TumorGrowth model
     is slightly modified. 
 
-    We add a datacollector for the dynamic graph and modify the step method.
+    We add a datacollector for the dynamic graph, modify the step method and add a description.
     """
 
+    description = (
+        """
+            Interactive simulation of tumor growth. Agents are cancerous cells and will multiply and try to invade healthy tissue.
+            \n Adjustable model parameters are: Proliferation inhibition: This will reduce multiplication of cells \n
+            Invasiveness enhancement: This will make agents more likely to attempt to migrate and less likely to multiply.\n
+            Nutrient threshold: If the local nutrient concentration drops below this value, all agents at that location will die (necrotic). \n
+            ECM degradation speed: How fast the tumor cells degrade healthy tissue. Increasing this value will significantly impact radial growth speed of the tumor \n
+            Distribution of the ECM: density field of healthy tissue, either completely random or Voronoi tessellation.
+        """
+    )
 
     def __init__(self, height=201, width=201, steps=1000, delta_d=100, D=1 * 10 ** -4, k=0.02, gamma=5 * 10 ** -4, phi_c=0.02, theta_p=0.2, theta_i=0.2, app=-0.1, api=-0.02, bip=0.02, bii=0.1, seed=random.randint(0, 1000), distribution=False):
         distribution = 'voronoi' if distribution == True else 'uniform'
