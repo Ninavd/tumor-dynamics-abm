@@ -20,7 +20,7 @@ class TumorGrowth(Model):
     '''
     Tumor Growth Model
     '''
-    def __init__(self, height = 201, width = 201, steps = 1000, delta_d=100,
+    def __init__(self, height = 101, width = 101, steps = 1000, delta_d=100,
                 D= 1*10**-4, k = 0.02, gamma = 5*10**-4, phi_c= 0.02,
                 theta_p=0.2, theta_i=0.2, app=-0.1, api=-0.02, bip=0.02, bii=0.1, 
                 seed = 913, distribution= 'uniform'):
