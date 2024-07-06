@@ -1,5 +1,5 @@
 # Agent-Based Tumor Growth
-<img src="videos/tumor_growth-gif.gif" width="50%"/>
+<img src="videos/tumor_growth-gif.gif" width="40%"/>
 
 Project on ABM tumor growth for the Agent-Based Modeling course at the UvA 2023-2024 (group 15).
 
@@ -26,7 +26,7 @@ sudo apt install ffmpeg
 ## Running an interactive Simulation
 To launch an interactive version of the model, execute `mesa runserver` or `python server.py` in the root directory of the project. This opens an interface will be opened in your browser, allowing for interactive simulations on a fixed 50x50 grid. Invasive agents are colored red, while proliferating agents are green. The size of the squares corresponds to the number of agents in that grid cell.
 
-<img src="save_files/image.png" alt="drawing" width="500"/>
+<img src="save_files/image.png" alt="drawing" width="600"/>
 
 We recommend increasing the fps slider to at least 10 fps to speed up the visualisation. 
 
