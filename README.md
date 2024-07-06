@@ -42,11 +42,11 @@ More information on these parameters can be found in the [original paper by Chen
 
 ## Running via the CLI
 ```
-usage: main.py [-h] [-s SEED] [-api ALPHA_PI] [-app ALPHA_PP] [-bii BETA_II] [-bip BETA_IP] [-dd DELTA_D] [--voronoi] [--summary] [--save]
+usage: main.py [-h] [-s SEED] [-api ALPHA_PI] [-app ALPHA_PP] [-bii BETA_II] [-bip BETA_IP] [--voronoi] [--summary] [--save]
                [--show_plot] [--animate]
                n_steps L_grid
 
-Simulate Agent-Based tumor growth and save results
+Simulate agent-based tumor growth and save results
 
 positional arguments:
   n_steps               max number of time steps used in simulation
@@ -54,19 +54,30 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
+
   -s SEED               Seed of simulation (default is random)
-  -api ALPHA_PI
-                        proliferative probability change when encountering an invasive cell (default is -0.02).
-  -app ALPHA_PP
-                        proliferative probability change when encountering an proliferative cell (default is -0.1).
-  -bii BETA_II
-                        invasive probability change when encountering an invasive cell (default is 0.1).
-  -bip BETA_IP
-                        invasive probability change when encountering an proliferative cell (default is 0.02).
-  --voronoi             Initialize ECM grid as voronoi diagram instead of   random
+
+  -api ALPHA_PI         proliferative probability change when 
+                        encountering an invasive cell (default is -0.02).      
+
+  -app ALPHA_PP         proliferative probability change when 
+                        encountering an proliferative cell (default is -0.1).
+
+  -bii BETA_II          invasive probability change when encountering 
+                        an invasive cell (default is 0.1). 
+
+  -bip BETA_IP          invasive probability change when encountering an
+                        proliferative cell (default is 0.02).   
+
+  --voronoi             Initialize ECM grid as voronoi diagram instead of
+                        random
+
   --summary             print summary of simulation results
+
   --save                store simulation object in pickle file
+
   --show_plot           show plots of final tumor and other parameters
+
   --animate             save animation video of simulated tumor growth
 ```
 
