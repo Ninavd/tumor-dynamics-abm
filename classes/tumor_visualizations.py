@@ -14,6 +14,9 @@ class TumorVisualization():
     def show_ecm(self, position = -1):
         """
         Plot current ECM density field.
+
+        Args:
+            position (int): which snapshot to plot. Default plots final snapshot.
         """
         fig, axs = plt.subplots()
         im = axs.imshow(self.model.ecm_layers[position])
@@ -22,6 +25,9 @@ class TumorVisualization():
     def show_nutrients(self, position = -1):
         """
         Plot current nutrient concentration field.
+
+        Args:
+            position (int): which snapshot to plot. Default plots final snapshot.
         """
         fig, axs = plt.subplots()
         im = axs.imshow(self.model.nutrient_layers[position])
@@ -29,7 +35,10 @@ class TumorVisualization():
     
     def show_tumor(self, position = -1):
         """
-        Plot mask of the tumor. Includes necrotic cells.
+        Plot mask of the tumor. Excludes necrotic cells.
+
+        Args:
+            position (int): which snapshot to plot. Default plots final snapshot.
         """
         fig, axs = plt.subplots()
         im = axs.imshow(self.model.N_Ts[position])
@@ -37,12 +46,15 @@ class TumorVisualization():
     
     def plot_necrotic_cells(self, position = -1):
         """
-        Plot mask of the tumor. Includes necrotic cells.
+        Plot mask of the tumor, only including necrotic cells.
+
+        Args:
+            position (int): which snapshot to plot. Default plots final snapshot.
         """
         fig, axs = plt.subplots()
-        im = axs.imshow(self.model.Necs[position])
+        im = axs.imshow(self.model.Necs[position], cmap='BuPu')
         plt.title(f'Necrotic cell distribution for a {self.model.height}x{self.model.width} Grid at iteration {len(self.model.ecm_layers)-1}')
-        #fig.colorbar(axs, fraction=0.046, pad=0.04)  #TODO: colorbar keeps getting errors
+        plt.colorbar(im, fraction=0.046, pad=0.04)  #TODO: colorbar keeps getting errors
         return fig, axs
     
     def plot_tumor_over_time(self, steps):
@@ -77,6 +89,9 @@ class TumorVisualization():
     def plot_all(self, position = -1):
         """
         Plot ECM, nutrient field and tumour in a single figure.
+
+        Args:
+            position (int): which snapshot to plot. Default plots final snapshot.
         """
         if type(position) == int:
             positions = [position]
@@ -158,6 +173,9 @@ class TumorVisualization():
         plt.show()
 
     def plot_cell_types(self):
+        """
+        Plot progression of absolute counts of each cell type.
+        """
         fig, ax1 = plt.subplots()
         ax1.plot(self.model.proliferating_cells, label = 'Proliferative Cells')
         ax1.plot(self.model.invasive_cells, label = 'Invasive Cells')
@@ -170,6 +188,9 @@ class TumorVisualization():
         plt.show()
 
     def plot_proportion_cell_types(self):
+        """
+        Plot progression of fractional cell distribution over time.
+        """
         fig, ax1 = plt.subplots()
         sum_count = np.array([np.sum(N_T) for N_T in self.model.N_Ts])
         sum_count += np.array([np.sum(Necs) for Necs in self.model.Necs])
@@ -190,11 +211,6 @@ class TumorVisualization():
         """
         velocities = self.TVH.calculate_velocities()
         plt.plot(velocities)
-        moving_average = 25
-        ret = np.cumsum(velocities, dtype=float)
-        ret[moving_average:] = ret[moving_average:] - ret[:-moving_average]
-        ma = ret[moving_average - 1:] / moving_average
-        plt.plot(ma)
         plt.title('Velocity of the Tumor Over Time')
         plt.xlabel('Iteration')
         plt.ylabel('Velocity of the Tumor')
