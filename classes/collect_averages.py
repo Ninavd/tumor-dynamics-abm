@@ -62,7 +62,7 @@ class RunCollection:
         for i in range(self.N):
 
             model = TumorGrowth(seed=np.random.randint(1000), **self.kwargs)
-            results = model.run_model()
+            results = model.run_model(print_progress=False)
             steps = results[-1]
 
             if steps != model.steps:
@@ -78,7 +78,7 @@ class RunCollection:
         results = self.collect_mean_results()
         self.save_to_csv(model, results)
         
-        return results
+        return model, results
          
     def collect_results(self, model: TumorGrowth, i: int):
         """
@@ -162,7 +162,6 @@ class RunCollection:
             'velocity'     :results.pop('velocity'),
             'velocity_conf':results.pop('velocity_conf')
         }
-        print(velocities)
         velocity_df = pd.DataFrame(velocities)
         results_df = pd.DataFrame(results)
         pd.concat([results_df, velocity_df], axis=1).to_csv(f'{save_dir}/{title}.csv') 
