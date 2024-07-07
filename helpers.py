@@ -5,6 +5,7 @@ import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
 def save_timestamp_metadata(self, timestamp):
+    update_metadata()
     app, api = self.app, self.api
     bii, bip = self.bii, self.bip
 
@@ -33,8 +34,8 @@ def save_timestamp_metadata(self, timestamp):
         data = json.load(f)
         data.append(metadata)
 
-        with open('save_files/metadata.json', 'w') as f:
-            json.dump(data, f, indent=4)
+    with open('save_files/metadata.json', 'w') as f:
+        json.dump(data, f, indent=4)
 
 def filter_runs(params: dict):
     """
@@ -61,10 +62,10 @@ def filter_runs(params: dict):
 def update_metadata():
     """
     Removes metadata from the metadata.json if runs were deleted.
-    Deletion is checked via simulation_parameters_run_id.txt
+    Deletion is checked via simulation_parameters_run_id.pickle
     """
     # list all run id's in save_files
-    run_ids = [f[f.rfind('_')+1:f.rfind('.')] for f in os.listdir('save_files/') if f.endswith('.txt')]
+    run_ids = [f[f.rfind('_')+1:f.rfind('.')] for f in os.listdir('save_files/') if f.endswith('.pickle')]
   
     with open('save_files/metadata.json', 'r') as file:
         metadata = json.load(file)
@@ -77,9 +78,6 @@ def update_metadata():
         json.dump(metadata, file, indent=4)
 
     return metadata
-
-def select_non_zero(data):
-    return data != 0
 
 def build_and_save_animation(data_frames, title, iterations):
     """
