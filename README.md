@@ -3,7 +3,7 @@
 
 Project on ABM tumor growth for the Agent-Based Modeling course at the UvA 2023-2024 (group 15).
 
-We present an agent-based tumor growth model grounded in the [Mesa](https://mesa.readthedocs.io/en/stable/) framework. Simulations can  be run via the CLI or interactively in the browser. Results are visualized with animations and/or plots and can be saved to csv for further analysis. The model is based on [this paper](https://www.nature.com/articles/srep17992) by Chen et al. and was expanded by adding a Voronoi tesselation to the underlying tissue distribution.
+We present an agent-based tumor growth model grounded in the [Mesa](https://mesa.readthedocs.io/en/stable/) framework. Simulations can  be run via the CLI or interactively in the browser. Results are visualized with animations and/or plots and can be saved to csv for further analysis. The model is based on [this paper](https://www.nature.com/articles/srep17992) by Chen et al. and was expanded by adding a Voronoi tesselation to the underlying tissue distribution and performing a sensitivity analysis.
 
 ## Installation
 To get started, clone the repository and install the required packages: 
@@ -24,7 +24,7 @@ sudo apt install ffmpeg
 ```
 
 ## Running an interactive Simulation
-To launch an interactive version of the model, execute `mesa runserver` or `python server.py` in the root directory of the project. This opens an interface in your browser, allowing for interactive simulations on a fixed 50x50 grid. Invasive agents are colored red, while proliferating agents are colored green. The size of the squares corresponds to the number of agents in that grid cell.
+To launch an interactive version of the model, execute `mesa runserver` or `python server.py` in the root directory of the project. This opens an interface in your browser, allowing for interactive simulations on a fixed 50x50 grid. Invasive agents are colored red, while proliferating agents are colored green. The size of the squares corresponds to the number of agents in the grid cell. 
 
 <img src="save_files/image.png" alt="drawing" width="600"/>
 
@@ -34,7 +34,7 @@ Several growth parameters can be adjusted with the sliders on the left hand side
 * Proliferation inhibition ($\alpha_{pp}$): Controls to what degree proliferation is favorable, default value is -0.1
 * Invasiveness enhancement ($\beta_{ii}$): Controls to what degree invasiveness is favorable, default is 0.1
 * Nutrient threshold ($\phi_c$): If the local nutrient concentration drops below this value, all agents at that location will die (become necrotic). Increasing this value may cause the initial cell population to die before significant growth is established. 
-* ECM degradation speed ($\gamma$): How fast the tumor cells degrade healthy tissue. Increasing this value will significantly impact radial growth speed of the tumor. 
+* ECM degradation speed ($\gamma$): How fast the tumor cells degrade healthy tissue. You will find that increasing this value will significantly impact radial growth speed of the tumor. This fact was solidified by our sensitivity analysis, which indicated that $\gamma$ had the [highest impact on the growth velocity](save_files/SA_analysis_128_distinct_samples_uniform/128_distinct_samples_uniformST_S1_tumor_diameter_steps_1000_grid_101_params_varied_10.png).
 * Distribution of the ECM: Density field of healthy tissue, can choose between a random distribution or a Voronoi tessellation.
 
 More information on these parameters can be found in the [original paper by Chen et al.](https://www.nature.com/articles/srep17992) or can be read in our report on request. 
@@ -82,7 +82,7 @@ options:
 ```bash
 python main.py 1000 100 -s 2 --show_plot --summary
 ```
-Runs one simulation for 1000 iterations on a 100x100 grid, with seed 2. Once the simulation is finished, plots are shown of the tumor and other statistics and a summary of the simulation is printed.
+Runs one simulation for 1000 iterations on a 100x100 grid, with seed 2, showing plots of the tumor and other statistics once the simulation is finished and printing a summary.
 
 ## Repository structure
 ```
