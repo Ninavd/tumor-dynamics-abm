@@ -5,11 +5,25 @@ import random
 import sys
 
 class TumorCell(Agent):
-    '''
-    This class is for the use of agent Tumor cell. 
-    input: state (str) - the state of the tumor cell. Options are: proliferating, invasive, necrotic.
-    '''
+    """
+    This class represents a tumor cell agent.
+
+    A tumor cell can be proliferating, invasive or necrotic. Once it becomes necrotic,
+    it is removed. Tumor cells can switch between proliferating and invading based on their surroundings.
+    They take into account local nutrient and tumor cell density, as well as behavior of neighbors. 
+    """
+
+
     def __init__(self, state, unique_id, model, seed):
+        """
+        Initialize TumorCell object.
+
+        Args:
+            state (str): initial state of the cell, proliferating or invasive.
+            unique_id (int): unique identifier of agent. Required by \'Agent\' ancestor class.
+            model (TumorGrowth): model aget is active in. 
+            seed (int): to seed the agent.
+        """
         super().__init__(unique_id, model)
 
         self.state = state
@@ -29,7 +43,6 @@ class TumorCell(Agent):
         probability_of_proliferate = self.probability_proliferate(nutrient_score)
         probability_of_invasion = self.probability_invasion(nutrient_score)
         normalized_proliferate = probability_of_proliferate / (probability_of_proliferate + probability_of_invasion)
-        normalized_invasion = 1 - normalized_proliferate
 
         random_value = np.random.random()
         if random_value < normalized_proliferate:
@@ -49,13 +62,17 @@ class TumorCell(Agent):
         
         proliferate = (which == 'proliferate')
         theta = self.model.theta_p if proliferate else self.model.theta_i
+
+        # formula from paper by Chen et al., see https://www.nature.com/articles/srep17992 
         left = e**(-(nutrient_score / (self.model.N_T[self.pos] * theta))**2)
         left = 1 - left if proliferate else left
         
         right = 1
         neighboring_cells = self.model.grid.get_neighbors(self.pos, moore=True, include_center=True if proliferate else False) 
         
+        # incorporate behavior of neighbors 
         for neighbor in neighboring_cells:
+
             if neighbor.state == 'proliferating' and neighbor != self:
                 right *= 1 + self.model.app if proliferate else 1 + self.model.bip
             elif neighbor.state == 'invasive' and neighbor != self: 
@@ -96,12 +113,18 @@ class TumorCell(Agent):
     def invade(self, best_cell):
         """
         Migrate to neighboring site if possible.
+
+        Args:
+            best_cell (tuple): coordinates of best neighboring grid cell to invade.
         """
-        self.model.displace_agent(self, new_pos=best_cell) # TODO: move cells simultaneously?
+        self.model.displace_agent(self, new_pos=best_cell) 
 
     def proliferate(self, best_cell):
         """
         Create daughter cell and place on grid.
+
+        Args:
+            best_cell (tuple): coordinates of best neighboring grid cell to invade.
         """
         self.model.add_agent('proliferating', self.model.next_id(), best_cell)
 
@@ -116,11 +139,19 @@ class TumorCell(Agent):
     def get_best_neighbor_site(self, nutrient_grid) -> tuple[int, int]:
         """
         Find optimal neighboring site for migration/daughter cell.
+
+        Sites with low tumor cells and high nutrient score are preferred.
+        Only grid cells with zero ECM (healthy tissue) are considered.
+
+        Returns:
+            tuple[int, int]: coordinates of best neighboring site.
         """
+        # initial values
         zero_ECM_sites = self.get_empty_ecm_sites()
         open_cell = self.pos
         lowest_amount = sys.maxsize
 
+        # loop over options
         for ecm_0 in zero_ECM_sites:
             number_of_agents = self.model.N_T[ecm_0] + self.model.Nec[ecm_0]
 
@@ -141,6 +172,9 @@ class TumorCell(Agent):
     def get_empty_ecm_sites(self) -> list[tuple[int, int]]:
         """
         Find all neighboring sites with zero ECM.
+
+        Returns:
+            list[tuple]: list of coordinates of neighboring zero ECM sites.
         """
         neighbors = self.model.grid.get_neighborhood(self.pos, moore=True, include_center=False)
         zero_ECM_neighbors = []
