@@ -7,8 +7,8 @@ import pandas as pd
 import sys
 import warnings
 
-from classes.tumor_growth import TumorGrowth
-from classes.tumor_visualization_helper import TumorVisualizationHelper
+from tumor.classes.tumor_growth import TumorGrowth
+from tumor.classes.tumor_visualization_helper import TumorVisualizationHelper
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -16,10 +16,18 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 class RunCollection:
 
     """
-    For doing multiple runs with the same parameters but different seeds.
+    Execute multiple runs of TumorGrowth with the same parameters but different seeds.
     """
 
     def __init__(self, N: int, log=True, **kwargs) -> None:
+        """
+        Initialize RunCollection object.
+
+        Args:
+            N (int): Number of runs.
+            log (bool): if True, stdout and stderr are save in seperate logfiles; 
+                        output_log.txt and error_log.txt
+        """
         self.N = N
         kwargs.pop('seed', None)
         self.kwargs = kwargs
@@ -29,10 +37,13 @@ class RunCollection:
             sys.stdout = open('save_files/averaged_runs/output_log.txt', 'w') # redirect output to log file
             sys.stderr = open('save_files/averaged_runs/error_log.txt', 'w') 
     
-    def init_saving_arrays(self, steps) -> None:
+    def _init_saving_arrays(self, steps) -> None:
         """
         Initialize array for saving results of each run.
         Each array has dimension N x iterations, where N is the number of runs.
+
+        Args:
+            steps (int): Number of iterations per run.
         """
         steps = steps + 1
         self.all_absolute_cell_counts = {
@@ -52,10 +63,19 @@ class RunCollection:
         self.list_of_velocities = []
 
     def run(self) -> dict[str, np.ndarray]:
+        """
+        Run N simulations, return the averaged results and confidence intervals and save to csv.
+        
+        Results includes the averaged progression over time of the absolute and
+        proportional cell counts, roughness, radius and growth velocity of the tumor.
+
+        Returns:
+            dict[str, ndarray]: parameter name and the averaged progression over time.
+        """
 
         # create array for saving results
         steps = self.kwargs.get('steps', 1000)
-        self.init_saving_arrays(steps)
+        self._init_saving_arrays(steps)
 
         print('Runs started on:', datetime.datetime.now())
 
@@ -83,7 +103,11 @@ class RunCollection:
          
     def collect_results(self, model: TumorGrowth, i: int):
         """
-        Collect results of a single run.        
+        Collect results of a single run.      
+
+        Args:
+            model (TumorGrowth): Tumor model of completed simulation.
+            i (int): current run number.  
         """
         proliferating = np.array(model.proliferating_cells)
         invasive = np.array(model.invasive_cells)
@@ -108,7 +132,12 @@ class RunCollection:
         self.list_of_velocities.append(velocity)
 
     def collect_mean_results(self) -> dict[str, np.ndarray]:
-        
+        """
+        Average all the results, and find the 95% confidence interval and return.
+
+        Returns:
+            dict[str, ndarray]: averaged results and its confidence interval.
+        """
         # absolute cell counts
         P_mean, P_CI = self.calculate_CI(self.all_absolute_cell_counts["proliferating"])
         I_mean, I_CI = self.calculate_CI(self.all_absolute_cell_counts["invasive"])
@@ -141,6 +170,10 @@ class RunCollection:
     def calculate_CI(self, arr_of_results: np.ndarray, z: float = 1.96):
         """
         Find mean and confidence interval of list of run results.
+
+        Args:
+            arr_of_results (ndarray): list of progressions, where each row represents one run. 
+            z (float): z-value in confidence interval calculation. Default is 1.96.
         """
         stdev = np.std(arr_of_results, axis=0)
         confidence_interval = z * stdev / math.sqrt(arr_of_results.shape[0])
@@ -148,7 +181,12 @@ class RunCollection:
 
     def plot_with_CI(mean: np.ndarray, CI: np.ndarray, ylabel: str = None, **kwargs):
         """
-        Plot the average progression of a list of results with confidence interval.
+        Plot the average progression with confidence interval.
+
+        Args:
+            mean (ndarray[float]): Averaged progression over time.
+            CI (ndarray[float]): Confidence interval of averaged progression.
+            ylabel (str): label for y-axis of plot. Default is None.
         """        
         plt.plot(mean, **kwargs)
         plt.fill_between(range(len(mean)), mean - CI, mean + CI, alpha=0.1)
@@ -158,13 +196,23 @@ class RunCollection:
         return mean, CI
     
     def save_to_csv(self, model, results: dict[str, np.ndarray], save_dir: str='save_files/averaged_runs'):
-        title = f'blah_{model.distribution}_{self.N}_runs_{model.steps}_iters_app_{model.app}_api_{model.api}_bii_{model.bii}_bip_{model.bip}_L_{model.width}'
+        """
+        Save the averaged results and confidence interval to csv.
+
+        Args:
+            model (TumorGrowth): A TumorGrowth model containing the run parameters.
+            results (dict[str, ndarray]): The averaged results to save to csv.
+            save_dir (str): Directory to save csv to. Default is \'save_files/averaged_runs\'
+        """        
+        # do velocity seperately as it is a different length 
         velocities = {
             'velocity'     :results.pop('velocity'),
             'velocity_conf':results.pop('velocity_conf')
         }
         velocity_df = pd.DataFrame(velocities)
         results_df = pd.DataFrame(results)
+
+        title = f'{model.distribution}_{self.N}_runs_{model.steps}_iters_app_{model.app}_api_{model.api}_bii_{model.bii}_bip_{model.bip}_L_{model.width}'
         pd.concat([results_df, velocity_df], axis=1).to_csv(f'{save_dir}/{title}.csv') 
 
 # TODO: implement running in parallel
