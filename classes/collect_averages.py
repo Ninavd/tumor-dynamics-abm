@@ -1,3 +1,4 @@
+import copy
 import datetime
 import math
 import matplotlib.pyplot as plt
@@ -76,7 +77,7 @@ class RunCollection:
 
         # find mean and CI of all statistics and save
         results = self.collect_mean_results()
-        self.save_to_csv(model, results)
+        self.save_to_csv(model, copy.copy(results))
         
         return model, results
          
@@ -165,10 +166,5 @@ class RunCollection:
         velocity_df = pd.DataFrame(velocities)
         results_df = pd.DataFrame(results)
         pd.concat([results_df, velocity_df], axis=1).to_csv(f'{save_dir}/{title}.csv') 
-
-
-if __name__ == "__main__":
-    N = 50
-    averaged_run = RunCollection(N, log=True, steps=1500).run()
 
 # TODO: implement running in parallel
