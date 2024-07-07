@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from classes.tumor_visualization_helper import TumorVisualizationHelper as TVH
+from tumor.classes.tumor_visualization_helper import TumorVisualizationHelper as TVH
 
 
 class TumorVisualization():

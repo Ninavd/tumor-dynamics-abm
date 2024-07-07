@@ -2,7 +2,7 @@ import mesa
 import random
 import warnings
 
-from code.classes.tumor_growth import TumorGrowth
+from tumor.classes.tumor_growth import TumorGrowth
 from mesa.datacollection import DataCollector
 
 # surpress warning about new PropertyLayer class of mesa

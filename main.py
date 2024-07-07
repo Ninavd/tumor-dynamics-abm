@@ -2,10 +2,10 @@ import argparse
 import numpy as np
 import warnings
 
-from code.classes.tumor_growth import TumorGrowth
-from code.classes.tumor_visualizations import TumorVisualization
-from code.classes.collect_averages import RunCollection
-from code.helpers import save_timestamp_metadata, build_and_save_animation, print_summary_message
+from tumor.classes.tumor_growth import TumorGrowth
+from tumor.classes.tumor_visualizations import TumorVisualization
+from tumor.classes.collect_averages import RunCollection
+from tumor.helpers import save_timestamp_metadata, build_and_save_animation, print_summary_message
 
 # surpress warning about new PropertyLayer class of mesa
 warnings.simplefilter(action='ignore', category=FutureWarning)

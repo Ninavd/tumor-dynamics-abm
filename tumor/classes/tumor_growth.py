@@ -9,8 +9,8 @@ from mesa.space import MultiGrid, PropertyLayer
 from mesa.time import RandomActivation
 from scipy.spatial import cKDTree
 
-from classes.tumor_cell import TumorCell
-from classes.tumor_visualization_helper import TumorVisualizationHelper as TVH
+from tumor.classes.tumor_cell import TumorCell
+from tumor.classes.tumor_visualization_helper import TumorVisualizationHelper as TVH
 
 np.set_printoptions(threshold=sys.maxsize)
 
