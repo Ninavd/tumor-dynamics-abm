@@ -145,9 +145,10 @@ class TumorVisualizationHelper():
             list: a list of velocities for every delta_d timesteps
         """
         velocities = []
-        for i in range(1, self.model.steps//self.model.delta_d):
-            velocities.append((self.model.radii[i*self.model.delta_d] 
-                               - self.model.radii[(i-1)*self.model.delta_d]) / self.model.delta_d)
+        intervals = self.model.radii[::self.model.delta_d]
+        for i in range(1, len(intervals)):
+            velocities.append((intervals[i] 
+                               - intervals[i-1]) / self.model.delta_d)
         return velocities
 
 
