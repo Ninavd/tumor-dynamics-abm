@@ -37,7 +37,7 @@ Several growth parameters can be adjusted with the sliders on the left hand side
 * ECM degradation speed ($\gamma$): How fast the tumor cells degrade healthy tissue. Increasing this value will significantly impact radial growth speed of the tumor. 
 * Distribution of the ECM: Density field of healthy tissue, can choose between a random distribution or a Voronoi tessellation.
 
-More information on these parameters can be found in the [original paper by Chen et al.](https://www.nature.com/articles/srep17992) or may be read from our report on request. 
+More information on these parameters can be found in the [original paper by Chen et al.](https://www.nature.com/articles/srep17992) or can be read in our report on request. 
 
 
 ## Running via the CLI
@@ -54,7 +54,8 @@ positional arguments:
 
 options:
   -h, --help            show this help message and exit
-
+  -n N                  How many simulations to run. If > 1, averaged results are saved
+                        to csv. Default is 1.
   -s SEED               Seed of simulation (default is random)
 
   -api ALPHA_PI         proliferative probability change when 
@@ -70,18 +71,35 @@ options:
                         proliferative cell (default is 0.02).   
 
   --voronoi             Initialize ECM grid as voronoi diagram instead of
-                        random
-
-  --summary             print summary of simulation results
-
-  --save                store simulation object in pickle file
-
-  --show_plot           show plots of final tumor and other parameters
-
-  --animate             save animation video of simulated tumor growth
+                        random.
+  --summary             print summary of simulation results.
+  --save                store simulation object in pickle file.
+  --show_plot           show plots of final tumor and other parameters.
+  --animate             save animation video of simulated tumor growth.
 ```
 
+**example**
+```bash
+python main.py 1000 100 -s 2 --show_plot --summary
+```
+Runs one simulation for 1000 iterations on a 100x100 grid, with seed 2. Once the simulation is finished, plots are shown of the tumor and other statistics and a summary of the simulation is printed.
+
 ## Repository structure
-
-
-## References
+```
+├── main.py     # CLI implementation
+├── server.py   # Running an interactive simulation
+├── tumor/
+│   ├── __init__.py
+│   ├── classes/
+│   │   ├── __init__.py
+│   │   ├── collect_averages.py             # Class for averaging over multiple runs
+│   │   ├── tumor_cell.py                   # Agent class
+│   │   ├── tumor_growth.py                 # Model class
+│   │   ├── tumor_visualization_helper.py   # Class for calculating several statistics
+│   │   └── tumor_visualizations.py         # Class for plotting visualizations and statistics
+│   ├── helpers.py                          # Helper functions
+│   ├── sensitivity_analysis.py             # Sensitivity analysis
+│   └── sensitivity_analysis_csv_only.py    # Plotting the results of SA
+├── save_files/                             # Simulation results are stored here
+└── videos/                                 # Animations are saved here
+```
