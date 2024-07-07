@@ -268,7 +268,7 @@ class TumorGrowth(Model):
         # count number of cells of each state
         self.count_states()
 
-    def run_model(self):
+    def run_model(self, print_progress=True):
         """
         Grow tumour for number of steps or until tumour touches border.
 
@@ -276,7 +276,7 @@ class TumorGrowth(Model):
             results (tuple) - Radius, number of agents, roughness, growth velocity and timestep 
         """
         for i in range(self.steps):
-            print(f'Running... step: {i+1}/{self.steps}         ', end='\r')
+            print(f'Running... step: {i+1}/{self.steps}         ', end='\r') if print_progress else None
 
             # stop simulation if tumor touches border
             if self.touches_border():
