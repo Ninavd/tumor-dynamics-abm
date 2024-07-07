@@ -1,14 +1,14 @@
-import argparse
-import numpy as np
-from classes.tumor_growth import TumorGrowth
-from classes.tumor_visualization_helper import TumorVisualizationHelper
-import matplotlib.pyplot as plt
-import warnings
-import pandas as pd
-import sys
-from numpy import ndarray
 import datetime
 import math
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import sys
+import warnings
+
+from classes.tumor_growth import TumorGrowth
+from classes.tumor_visualization_helper import TumorVisualizationHelper
+
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 
@@ -21,22 +21,19 @@ class RunCollection:
     def __init__(self, N: int, log=True, **kwargs) -> None:
         self.N = N
         kwargs.pop('seed', None)
-        self.model_instances = [TumorGrowth(seed=np.random.randint(1000), **kwargs) for _ in range(N)]
+        self.kwargs = kwargs
 
         # pipe output to files if log is True
         if log:
             sys.stdout = open('save_files/averaged_runs/output_log.txt', 'w') # redirect output to log file
             sys.stderr = open('save_files/averaged_runs/error_log.txt', 'w') 
-
-        # create array for saving results
-        self.init_saving_arrays()
     
-    def init_saving_arrays(self) -> None:
+    def init_saving_arrays(self, steps) -> None:
         """
         Initialize array for saving results of each run.
         Each array has dimension N x iterations, where N is the number of runs.
         """
-        steps = self.model_instances[0].steps + 1
+        steps = steps + 1
         self.all_absolute_cell_counts = {
             "proliferating":np.zeros((self.N, steps)),
             "invasive"     :np.zeros((self.N, steps)),
@@ -53,25 +50,36 @@ class RunCollection:
         self.arr_of_roughness = np.zeros((self.N, steps))
         self.list_of_velocities = []
 
-    def calculate_CI(self, arr_of_results: ndarray, z: float = 1.96):
-        """
-        Find mean and confidence interval of list of run results.
-        """
-        stdev = np.std(arr_of_results, axis=0)
-        confidence_interval = z * stdev / math.sqrt(arr_of_results.shape[0])
-        return np.mean(arr_of_results, axis=0), confidence_interval
+    def run(self) -> dict[str, np.ndarray]:
 
-    def plot_with_CI(mean: ndarray, CI: ndarray, ylabel: str = None, **kwargs):
-        """
-        Plot the average progression of a list of results with confidence interval.
-        """        
-        plt.plot(mean, **kwargs)
-        plt.fill_between(range(len(mean)), mean - CI, mean + CI, alpha=0.1)
-        plt.grid()
-        plt.ylabel(ylabel)
-        plt.xlabel('iteration')
-        return mean, CI
-            
+        # create array for saving results
+        steps = self.kwargs.get('steps', 1000)
+        self.init_saving_arrays(steps)
+
+        print('Runs started on:', datetime.datetime.now())
+
+        # execute N runs of the model 
+        for i in range(self.N):
+
+            model = TumorGrowth(seed=np.random.randint(1000), **self.kwargs)
+            results = model.run_model()
+            steps = results[-1]
+
+            if steps != model.steps:
+                print(f'Run {i+1} of {self.N} skipped due to early stopping at step {steps}')
+                continue
+
+            self.collect_results(model, i)
+            print(f'Run {i+1} of {self.N} completed\n')
+
+        print('Runs ended on:', datetime.datetime.now())
+
+        # find mean and CI of all statistics and save
+        results = self.collect_mean_results()
+        self.save_to_csv(model, results)
+        
+        return results
+         
     def collect_results(self, model: TumorGrowth, i: int):
         """
         Collect results of a single run.        
@@ -98,32 +106,7 @@ class RunCollection:
         velocity = TVH.calculate_velocities()
         self.list_of_velocities.append(velocity)
 
-    def run(self) -> dict[str, ndarray]:
-
-        print('Runs started on:', datetime.datetime.now())
-
-        # execute N runs of the model
-        for i in range(self.N):
-
-            model = self.model_instances.pop()
-            results = model.run_model()
-            steps = results[-1]
-
-            if steps != model.steps:
-                print(f'Run {i+1} of {self.N} skipped due to early stopping at step {steps}')
-                continue
-
-            self.collect_results(model, i)
-            print(f'Run {i+1} of {self.N} completed\n')
-
-        print('Runs ended on:', datetime.datetime.now())
-
-        # find mean and CI of all statistics and save
-        results = self.collect_mean_results()
-        self.save_to_csv(model, results)
-        return results
-
-    def collect_mean_results(self) -> dict[str, ndarray]:
+    def collect_mean_results(self) -> dict[str, np.ndarray]:
         
         # absolute cell counts
         P_mean, P_CI = self.calculate_CI(self.all_absolute_cell_counts["proliferating"])
@@ -154,8 +137,27 @@ class RunCollection:
         }
         return results
     
-    def save_to_csv(self, model, results: dict[str, ndarray], save_dir: str='save_files/averaged_runs'):
-        title = f'{model.distribution}_{self.N}_runs_{model.steps}_iters_app_{model.app}_api_{model.api}_bii_{model.bii}_bip_{model.bip}_L_{model.width}'
+    def calculate_CI(self, arr_of_results: np.ndarray, z: float = 1.96):
+        """
+        Find mean and confidence interval of list of run results.
+        """
+        stdev = np.std(arr_of_results, axis=0)
+        confidence_interval = z * stdev / math.sqrt(arr_of_results.shape[0])
+        return np.mean(arr_of_results, axis=0), confidence_interval
+
+    def plot_with_CI(mean: np.ndarray, CI: np.ndarray, ylabel: str = None, **kwargs):
+        """
+        Plot the average progression of a list of results with confidence interval.
+        """        
+        plt.plot(mean, **kwargs)
+        plt.fill_between(range(len(mean)), mean - CI, mean + CI, alpha=0.1)
+        plt.grid()
+        plt.ylabel(ylabel)
+        plt.xlabel('iteration')
+        return mean, CI
+    
+    def save_to_csv(self, model, results: dict[str, np.ndarray], save_dir: str='save_files/averaged_runs'):
+        title = f'blah_{model.distribution}_{self.N}_runs_{model.steps}_iters_app_{model.app}_api_{model.api}_bii_{model.bii}_bip_{model.bip}_L_{model.width}'
         velocities = {
             'velocity'     :results.pop('velocity'),
             'velocity_conf':results.pop('velocity_conf')
@@ -167,7 +169,7 @@ class RunCollection:
 
 
 if __name__ == "__main__":
-    N = 2
-    averaged_run = RunCollection(N, log=False, seed=2, steps=200).run()
+    N = 50
+    averaged_run = RunCollection(N, log=True, steps=1500).run()
 
 # TODO: implement running in parallel
