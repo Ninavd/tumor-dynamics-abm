@@ -11,7 +11,7 @@ from SALib.sample import sobol
 from SALib import ProblemSpec
 from glob import glob
 
-from classes.tumor_growth import TumorGrowth
+from code.classes.tumor_growth import TumorGrowth
 
 # surpress annoying warning about new feature in mesa
 warnings.simplefilter(action='ignore', category=FutureWarning)
