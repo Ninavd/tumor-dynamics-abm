@@ -24,7 +24,7 @@ sudo apt install ffmpeg
 ```
 
 ## Running an interactive Simulation
-To launch an interactive version of the model, execute `mesa runserver` or `python server.py` in the root directory of the project. This opens an interface will be opened in your browser, allowing for interactive simulations on a fixed 50x50 grid. Invasive agents are colored red, while proliferating agents are green. The size of the squares corresponds to the number of agents in that grid cell.
+To launch an interactive version of the model, execute `mesa runserver` or `python server.py` in the root directory of the project. This opens an interface in your browser, allowing for interactive simulations on a fixed 50x50 grid. Invasive agents are colored red, while proliferating agents are colored green. The size of the squares corresponds to the number of agents in that grid cell.
 
 <img src="save_files/image.png" alt="drawing" width="600"/>
 
