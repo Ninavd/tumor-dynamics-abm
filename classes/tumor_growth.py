@@ -187,7 +187,7 @@ class TumorGrowth(Model):
         """
         for j in range(1, self.grid.width-1):
             for l in range(1, self.grid.height-1):
-                N_t = len(self.grid.get_cell_list_contents([j,l]))
+                N_t = self.N_T[j, l]
                 value = self.diffusion_equation(N_t, j, l)
                 self.nutrient_layer.set_cell((j,l), value)
 
