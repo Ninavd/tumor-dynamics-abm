@@ -10,7 +10,6 @@ from mesa.time import RandomActivation
 from scipy.spatial import cKDTree
 
 from classes.tumor_cell import TumorCell
-from helpers import select_non_zero
 from classes.tumor_visualization_helper import TumorVisualizationHelper as TVH
 
 np.set_printoptions(threshold=sys.maxsize)
@@ -171,22 +170,20 @@ class TumorGrowth(Model):
         """
         Update ECM. Tumor cells attack and lower the ECM.
         """
-        # select cells with non-zero ECM
-        active_cells = self.nutrient_layer.select_cells(select_non_zero)
-        
-        # degrade ECM
-        for x, y in active_cells:
-            neighbors = self.grid.get_neighborhood(pos=(x, y), moore = True, include_center = True)
-            amount_of_tumor_cells = len(self.grid.get_cell_list_contents(neighbors))
-            updated_value = self.ecm_layer.data[x,y] - self.gamma * amount_of_tumor_cells
+        non_empty_cells = np.argwhere(self.N_T > 0)
+        for x, y in non_empty_cells:
 
-            # Updated ECM cannot be negative
-            updated_value = updated_value if updated_value > 0 else 0 
-            self.ecm_layer.set_cell((x,y), updated_value)
+            neighbors = self.grid.get_neighborhood(pos=(x, y), moore = True, include_center = True)
+            for coord in neighbors:
+
+                # Updated ECM cannot be negative
+                updated_value = self.ecm_layer.data[coord] - self.gamma * self.N_T[x, y]
+                updated_value = updated_value if updated_value > 0 else 0 
+                self.ecm_layer.set_cell(coord, updated_value)
 
     def diffusion(self):
         """
-        Update nutrient field.
+        Update nutrient field with discretized reaction-diffusion equation.
         """
         for j in range(1, self.grid.width-1):
             for l in range(1, self.grid.height-1):
@@ -205,7 +202,7 @@ class TumorGrowth(Model):
         Returns:
             (int): Updated nutrient concentration in grid cell
         """
-        # This equation breaks if you don't update after each grid visited and if you dont move from x,y = 0,0 to x,y max (when question about this ask thomas or kattelijn)
+        # This equation breaks if you don't update after each grid visited and if you dont move from x,y = 0,0 to x,y=max
         part1 = (1 - self.k * N_t * self.tau - 2 * self.lam) / (1 + 2 * self.lam) * self.nutrient_layer.data[x, y]
         part2 = self.lam / (1 + 2 * self.lam)
         part3 = self.nutrient_layer.data[x + 1, y] + self.nutrient_layer.data[x, y + 1] + self.nutrient_layer.data[x - 1, y] + self.nutrient_layer.data[x, y - 1]
@@ -255,17 +252,11 @@ class TumorGrowth(Model):
         Single simulation step. 
         Updates ECM, nutrients, state of agents and their distribution.
         """
-        # degradation ecm
         self.degredation()
-        # nutrient diffusion step
         self.diffusion()
-        # determine cell death
         self.cell_death()
-        # determine cell proliferation or migration
         self.new_state()
-        # randomly activate agents
         self.scheduler.step()
-        # count number of cells of each state
         self.count_states()
 
     def run_model(self, print_progress=True):
