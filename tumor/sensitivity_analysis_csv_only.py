@@ -44,6 +44,7 @@ def plot_layout():
     plt.xlim(-0.1, 1.15)
 
 if __name__=="__main__":
+    save_dir = '../save_files'
 
     # create pretty plots for all results and save
     for S1, ST in zip(S1_result_files, ST_result_files):
@@ -89,6 +90,6 @@ if __name__=="__main__":
         plt.tight_layout()
 
         title = S1.split('/')[1][12:] + 'ST_' + S1.split('/')[-1][:-4]
-        plt.savefig(title, dpi=300)
+        plt.savefig(f'{save_dir}/{title}', dpi=300)
 
         plt.show()
