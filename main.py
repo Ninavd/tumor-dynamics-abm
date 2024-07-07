@@ -2,9 +2,9 @@ import argparse
 import numpy as np
 import warnings
 
-from classes.tumor_growth import TumorGrowth
-from classes.tumor_visualizations import TumorVisualization
-from classes.collect_averages import RunCollection
+from code.classes.tumor_growth import TumorGrowth
+from code.classes.tumor_visualizations import TumorVisualization
+from code.classes.collect_averages import RunCollection
 from helpers import save_timestamp_metadata, build_and_save_animation, print_summary_message
 
 # surpress warning about new PropertyLayer class of mesa
