@@ -4,29 +4,34 @@ import numpy as np
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
-def save_timestamp_metadata(self, timestamp):
-    update_metadata()
-    app, api = self.app, self.api
-    bii, bip = self.bii, self.bip
+def save_timestamp_metadata(model, timestamp):
+    """
+    Save parameter values of pickeled model object.
 
+    Args:
+        model (TumorGrowth): model that was pickled.
+        timestamp (str): unique identifier of model, which was saved as 
+                         simulation_data_<timestamp>.pickle.
+    """
+    update_metadata()
     metadata = {
         "run_id":timestamp,
-        "iterations":len(self.N_Ts) - 1,
-        "grid_height":self.height,
-        "grid_width": self.width,
-        "seed": self.seed,
-        "a_pp":app, 
-        "a_pi":api,
-        "b_ii":bii,
-        "b_ip":bip,
-        "k":self.k, 
-        "tau":self.tau, 
-        "gamma":self.gamma,
-        "D": self.D,
-        "h": self.h, 
-        "lambda": round(self.lam, 3),
-        "phi_c": self.phi_c,
-        "Voroni": self.distribution != 'uniform'
+        "iterations":len(model.N_Ts) - 1,
+        "grid_height":model.height,
+        "grid_width": model.width,
+        "seed": model.seed,
+        "a_pp":model.app, 
+        "a_pi":model.api,
+        "b_ii":model.bii,
+        "b_ip":model.bip,
+        "k":model.k, 
+        "tau":model.tau, 
+        "gamma":model.gamma,
+        "D": model.D,
+        "h": model.h, 
+        "lambda": round(model.lam, 3),
+        "phi_c": model.phi_c,
+        "voronoi": model.distribution != 'uniform'
     }
 
     # save timestamp metadata
@@ -48,13 +53,16 @@ def filter_runs(params: dict):
 
     filtered = []
     for entry in metadata:
-
         match = True
+
         for name in params:
+            
+            # no match if parameter value does not match
             if entry.get(name) != params[name]:
                 match = False
                 break
-
+        
+        # add run_id to list if parameters matched
         filtered.append(entry['timestamp']) if match else None
     
     return filtered
@@ -62,7 +70,7 @@ def filter_runs(params: dict):
 def update_metadata():
     """
     Removes metadata from the metadata.json if runs were deleted.
-    Deletion is checked via simulation_parameters_run_id.pickle
+    Deletion is checked via presence of simulation_parameters_run_id.pickle files.
     """
     # list all run id's in save_files
     run_ids = [f[f.rfind('_')+1:f.rfind('.')] for f in os.listdir('save_files/') if f.endswith('.pickle')]
@@ -86,7 +94,7 @@ def build_and_save_animation(data_frames, title, iterations):
     Args:
         data_frames (list[ndarray]): list of frames to be animated.
         title (str): title of the output file
-        iterations: Number of frames needed.
+        iterations (int): Number of frames needed.
     """
     fig = plt.figure()
     im = plt.imshow(np.random.randint(low=0, high=data_frames[-1].max(), size=data_frames[0].shape), animated=True, interpolation="nearest", origin="upper", cmap='BuPu')
@@ -106,6 +114,14 @@ def build_and_save_animation(data_frames, title, iterations):
 def print_summary_message(model, steps_taken, payoff, roughness, radius, velocity):
     """
     Prints summary message of completed simulation.
+
+    Args:
+        model (TumorGrowth): model of finished simulation
+        steps_taken (int): number of steps completed, returned by run_model() method of model.
+        payoff (ndarray[float]): payoff matrix used in the simulation.
+        roughness (float): final roughness of tumor, returned by run_model() method.
+        radius (float): final radius of tumor, returned by run_model() method.
+        velocity (float): Average radial growth velocity, returned by run_model() method.
     """
 
     print(
