@@ -192,8 +192,7 @@ class TumorVisualization():
         Plot progression of fractional cell distribution over time.
         """
         fig, ax1 = plt.subplots()
-        sum_count = np.array([np.sum(N_T) for N_T in self.model.N_Ts])
-        sum_count += np.array([np.sum(Necs) for Necs in self.model.Necs])
+        sum_count = np.sum([self.model.proliferating_cells, self.model.invasive_cells, self.model.necrotic_cells], axis=0)
 
         ax1.plot(np.array(self.model.proliferating_cells)/sum_count, label = 'Proliferative Cells')
         ax1.plot(np.array(self.model.invasive_cells)/sum_count, label = 'Invasive Cells')
