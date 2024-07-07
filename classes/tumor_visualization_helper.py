@@ -1,6 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import copy
 from scipy.optimize import curve_fit
 
 class TumorVisualizationHelper():
@@ -60,7 +58,7 @@ class TumorVisualizationHelper():
         for i in range(mask.shape[0]):
             for j in range(mask.shape[1]):
                 if mask[i, j]:
-                    # check if on the edge
+                    # check if on the edge to prevent indexing error
                     if i - 1 == -1 or i + 1 == mask.shape[0] or j + 1 == mask.shape[0] or j - 1 == -1:
                         edges_matrix[i, j] = 1 
                     elif mask[i-1, j] == 0 or mask[i+1, j] == 0 or mask[i, j-1] == 0 or mask[i, j+1] == 0:
@@ -161,6 +159,6 @@ class TumorVisualizationHelper():
         """
         fit_func = lambda x, a, b: a * x + b
         skip = 100
-        popt, pcov = curve_fit(fit_func, xdata = range(100, len(self.model.N_Ts)), ydata=self.model.radii[skip:])
+        popt, pcov = curve_fit(fit_func, xdata = range(skip, len(self.model.N_Ts)), ydata=self.model.radii[skip:])
         velocity, offset = popt
         return velocity, offset
