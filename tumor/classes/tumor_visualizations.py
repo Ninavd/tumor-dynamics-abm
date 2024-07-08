@@ -4,10 +4,26 @@ import matplotlib.pyplot as plt
 from tumor.classes.tumor_visualization_helper import TumorVisualizationHelper as TVH
 
 
-class TumorVisualization():
+class TumorVisualization:
+    """
+    Visualize final results of tumor growth simulation.
 
+    Example usage:
+        visualize = TumorVisualization(model)
+        visualize.plot_all() # to plot final ECM and nutrient distribution and tumor shape.
+    
+    Attributes:
+        model (TumorGrowth): Model to visualize.
+        TVH (TumorVisualizationHelper): Helper class that provides analysis of results.
+    """
 
     def __init__(self, model):
+        """
+        Initializes visualisation.
+
+        Args:
+            model (TumorGrowth): Model to visualize.
+        """
         self.model = model
         self.TVH = TVH(model)
 
@@ -60,6 +76,9 @@ class TumorVisualization():
     def plot_tumor_over_time(self, steps):
         """
         Plot tumor over time.
+
+        Args:
+            steps (int): Number of iterations performed in simulation.
         """
         final_fig, final_axs = plt.subplots(1, 3, figsize=(15, 5))
 
@@ -70,9 +89,11 @@ class TumorVisualization():
         tumor_initial_axs = final_axs[0].imshow(tumor_initial_axs.get_images()[0].get_array(), vmin=0, vmax=5, cmap = 'BuPu')
         final_axs[0].axis("off")
         final_axs[0].set_title('t=0')
+
         tumor_middle_axs = final_axs[1].imshow(tumor_middle_axs.get_images()[0].get_array(), vmin=0, vmax=5, cmap = 'BuPu')
         final_axs[1].set_title(f't={round(steps/2)}')
         final_axs[1].axis("off")
+
         tumor_final_axs = final_axs[2].imshow(tumor_final_axs.get_images()[0].get_array(), vmin=0, vmax=5, cmap = 'BuPu')
         final_axs[2].set_title(f't={steps}')
         final_axs[2].axis("off")
@@ -88,7 +109,7 @@ class TumorVisualization():
 
     def plot_all(self, position = -1):
         """
-        Plot ECM, nutrient field and tumour in a single figure.
+        Plot ECM, nutrient field and tumour shape in a single figure.
 
         Args:
             position (int): which snapshot to plot. Default plots final snapshot.
@@ -131,11 +152,14 @@ class TumorVisualization():
             plt.show()
 
     def plot_birth_deaths(self):
-        birth_rel_death = [(self.model.births[i]) /(self.model.births[i] + self.model.deaths[i]) for i in range(len(self.model.births))]
+        """
+        Plot cumulative number of births and deaths.
+        """
+        birth_rel_death = [(self.model.births[i]) /(self.model.births[i] + self.model.necrotic_cells[i]) for i in range(len(self.model.births))]
         fig, ax1 = plt.subplots()
         ax2 = ax1.twinx()
         ax1.plot(self.model.births, label='Births')
-        ax1.plot(self.model.deaths, label='Deaths')
+        ax1.plot(self.model.necrotic_cells, label='Deaths')
         ax2.plot(birth_rel_death, label='Births / (Births + Deaths)', color='g')
 
         ax1.set_xlabel('Iteration')
@@ -151,7 +175,7 @@ class TumorVisualization():
     
     def plot_radial_distance(self):
         """
-        Plot the radial distance of the tumor from the center of the grid.
+        Plot the average radius of the tumor over time.
         """
         plt.plot(self.model.radii)
         plt.title('Average Radial Distance From Tumor Center to Tumor Edge')
@@ -162,7 +186,7 @@ class TumorVisualization():
 
     def plot_roughness(self):
         """
-        Plot the roughness of the tumor.
+        Plot the roughness of the tumor over time.
         """
         roughness_values = self.TVH.calculate_roughness_progression()
         plt.plot(roughness_values)
@@ -206,7 +230,7 @@ class TumorVisualization():
 
     def plot_velocities(self):
         """
-        Plot the velocities of the tumor.
+        Plot the progression of the growth velocity of the tumor.
         """
         velocities = self.TVH.calculate_velocities()
         plt.plot(velocities)

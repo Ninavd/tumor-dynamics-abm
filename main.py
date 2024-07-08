@@ -44,7 +44,7 @@ def main(steps, L, n_runs, seed, payoff, voronoi, summary, save, show_plot, anim
         vis.plot_all()
         vis.plot_cell_types()
         vis.plot_proportion_cell_types()
-        vis.plot_tumor_over_time(steps)
+        vis.plot_tumor_over_time(steps_taken)
         vis.plot_radial_distance()
         vis.plot_roughness()
         vis.plot_velocities() if steps_taken > 200 else None

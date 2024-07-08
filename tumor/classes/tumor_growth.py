@@ -1,6 +1,5 @@
 import copy 
 import numpy as np
-import sys
 import time
 import pickle
 
@@ -12,18 +11,74 @@ from scipy.spatial import cKDTree
 from tumor.classes.tumor_cell import TumorCell
 from tumor.classes.tumor_visualization_helper import TumorVisualizationHelper as TVH
 
-np.set_printoptions(threshold=sys.maxsize)
-
 
 class TumorGrowth(Model):
-    '''
-    Tumor Growth Model
-    '''
+    """
+    Tumor Growth Model.
+
+    Simulate tumor growth in healthy tissue for a number of time steps.
+    Tumor is initialized with a single proliferative cell in the center of the two-dimensional grid.
+    Snapshots of the healthy tissue and nutrient distribution, cell counts and tumor shapes are saved.
+    
+    Example usage:
+        model = TumorGrowth() # initialize model with default parameters. 
+        results = model.run_model() # run model for 1000 steps. 
+
+    Attributes: 
+        scheduler (RandomActivation): Schedules activation of agents.
+        TVH (TumorVisualisationHelper): Calculates properties of the tumor.
+        height, width (int, int): Grid size.
+        center (int): Center of the grid, assuming grid is square.
+        steps (int): Defines maximum number of steps taken in a simulation.
+        seed (int): Defines seed of the simulation.
+        ecm_layer (PropertyLayer): Represents healthy tissue distribution (ECM).
+        nutrient_layer (PropertyLayer): Represents nutrient concentration field.
+        grid (MultiGrid): Discretized grid containing the TumorCell agents. 
+        app, api, bip, bii: Matrix elements in payoff matrix.
+        k (float): Indicates how many nutrients an agent consumes.
+        tau (float): Parameter of reaction-diffusion equation.
+        gamma (float): Inidicates with what factor an agent degrades the ecm.
+        D (float): Diffusion constant.
+        theta_i, theta_p (float, float): Shape parameters.
+        lam (float): parameter in discretized reaction-diffusion equation.
+        phi_c (float): Indicates critical nutrient threshold, below which agents die.
+        distribution (str): Defines ECM distribution. Either \'random\' or \'voronoi\'.
+        N_T (ndarray): Current distribution of living agents, excluding necrotic agents. 
+        Nec (ndarray): Current distribution of necrotic agents.
+        number_births (int): total number of births.
+        number_deaths (int): total number of deaths.
+        ecm_layers (list[ndarray]): Contains snapshots of ECM distribution.
+        nutrient_layers (list[ndarray]): Contains snapshots of nutrient distribution.
+        N_Ts (list[ndarray]): Contains snapshots of spatial living agent distribution.
+        Necs (list[ndarray]): Contains snapshots of spatial necrotic agent distribution. 
+        births (list[int]): Records cumulative number of births.
+        radii (list[float]): Records radius of tumor at the end of simulation.
+        delta_d (int): Time interval to calculate velocity on.
+        proliferating_cells (list[int]): Number of proliferating agents at each iteration.
+        invasive_cells (list[int]): Number of invasive agents at each iteration.
+        necrotic_cells (list[int]): Total number of necrotic agents (deaths).
+    """
     def __init__(self, height = 101, width = 101, steps = 1000, delta_d=100,
                 D= 1*10**-4, k = 0.02, gamma = 5*10**-4, phi_c= 0.02,
                 theta_p=0.2, theta_i=0.2, app=-0.1, api=-0.02, bip=0.02, bii=0.1, 
                 seed = 913, distribution= 'uniform'):
-        
+        """
+        Initializes model based on provided parameters.
+
+        Args:
+            height, width (int, int): grid size.
+            steps (int): Defines maximum number of steps taken in a simulation.
+            seed (int): Defines seed of the simulation.
+            app, api, bip, bii: Matrix elements in payoff matrix.
+            k (float): Indicates how many nutrients an agent consumes.
+            tau (float): Parameter of reaction-diffusion equation.
+            gamma (float): Inidicates with what factor an agent degrades the ecm.
+            D (float): Diffusion constant.
+            theta_i, theta_p (float, float): Shape parameters.
+            lam (float): parameter in discretized reaction-diffusion equation.
+            phi_c (float): Indicates critical nutrient threshold, below which agents die.
+            distribution (str): Defines ECM distribution. Either \'random\' or \'voronoi\'.
+        """
         super().__init__(seed=seed)
         self.scheduler = RandomActivation(self)
         self.TVH = TVH(self)
@@ -80,10 +135,8 @@ class TumorGrowth(Model):
         self.N_Ts = []
         self.Necs = []
         self.births = []
-        self.deaths = [] 
         self.radii = []
         
-        self.distances = []
         self.delta_d = delta_d
 
         self.proliferating_cells = [1]
@@ -95,28 +148,27 @@ class TumorGrowth(Model):
 
     def init_nutrient_layer(self):
         """
-        Initializes the nutrient concentration field by sampling 
-        from uniform distribution.
+        Initializes the nutrient layer by sampling 
+        from a uniform distribution U(0, 1) at each site.
         """
         for x in range(1, self.width - 1):
             for y in range(1, self.height - 1):
-
                 nutrient_value = np.random.uniform(0,1)
                 self.nutrient_layer.set_cell((x, y), nutrient_value)
 
     def init_uniform_ECM(self):
         """
-        Initializes the ECM distribution for a uniform distribution.
+        Initializes the ECM distribution by sampling 
+        from a uniform distribution U(0, 1) at each site..
         """
         for x in range(self.width):
             for y in range(self.height):
-
                 value = np.random.uniform(0,1)
                 self.ecm_layer.set_cell((x, y), value)     
 
     def init_voronoi_ECM(self):
         """
-        Initializes the ECM for a voronoi tesselation.
+        Initializes the ECM as a voronoi tesselation.
         """
         num_seed_points = self.height
         
@@ -137,13 +189,13 @@ class TumorGrowth(Model):
             value = densities[seed_point_regions[i]]
             self.ecm_layer.set_cell(grid[i], value)
 
-    def add_agent(self, state, id, pos):
+    def add_agent(self, state: str, id: int, pos: tuple[int]):
         """
-        Create new agent and update agent distribution.
+        Create new agent and add to grid and scheduler.
 
         Args:
-            state (str): necrotic, proliferative or invasive
-            id (int): unique id that identifies agent.
+            state (str): \'necrotic\', \'proliferative\' or \'invasive\'.
+            id (int): unique identifier of the agent.
             pos (tuple[int, int]): intial x, y position of new agent.
         """
         assert state in ['proliferating', 'invasive', 'necrotic'], 'Invalid state. State must be: necrotic, proliferating or invasive.'
@@ -154,12 +206,12 @@ class TumorGrowth(Model):
         self.number_births += 1
         self.scheduler.add(tumorcell)
     
-    def displace_agent(self, agent: TumorCell, new_pos):
+    def displace_agent(self, agent: TumorCell, new_pos: tuple[int]):
         """
         Move agent and update agent distribution.
 
         Args:
-            agent (TumorCell): cell to move.
+            agent (TumorCell): Agent to move.
             new_pos (tuple): new position of agent.
         """
         self.N_T[agent.pos] -= 1
@@ -168,7 +220,7 @@ class TumorGrowth(Model):
 
     def degredation(self):
         """
-        Update ECM. Tumor cells attack and lower the ECM.
+        All living tumor cells degrade neighboring tissue (ECM).
         """
         non_empty_cells = np.argwhere(self.N_T > 0)
         for x, y in non_empty_cells:
@@ -210,7 +262,7 @@ class TumorGrowth(Model):
     
     def cell_death(self):
         """
-        Make agents necrotic if nutrients below threshold.
+        Agents are removed if local nutrients are below threshold.
         """
         for agent in self.agents:
             phi = self.nutrient_layer.data[agent.pos]
@@ -263,8 +315,11 @@ class TumorGrowth(Model):
         """
         Grow tumour for number of steps or until tumour touches border.
 
+        Args:
+            print_progress (bool): prints \'current step/ total\' if true. 
+
         Returns:
-            results (tuple) - Radius, number of agents, roughness, growth velocity and timestep 
+            results (tuple): Final radius, living agents, roughness, growth velocity and timestep.
         """
         for i in range(self.steps):
             print(f'Running... step: {i+1}/{self.steps}         ', end='\r') if print_progress else None
@@ -298,11 +353,10 @@ class TumorGrowth(Model):
         self.N_Ts.append(copy.deepcopy(self.N_T))
         self.Necs.append(copy.deepcopy(self.Nec))
         self.births.append(copy.copy(self.number_births))
-        self.deaths.append(copy.copy(self.number_deaths))
     
     def collect_results(self, step):
         """
-        Collect final stats of the simulation.
+        Collect final statistics of the simulation.
         """
         roughness = self.TVH.calculate_roughness(self.N_Ts[-1], self.Necs[-1])
         self.radii = self.TVH.radius_progression()
@@ -313,7 +367,7 @@ class TumorGrowth(Model):
 
     def save_simulation_results_to_file(self):
         """
-        Save simulation results to a file. Namely the parameters in a txt file and the results stored in self.ECM, Nutrient, N_T, Births, Deaths lists as a pkl file. 
+        Save simulation results to a pickle file.
 
         Returns:
             string: timestamp of when the files were saved.
@@ -327,7 +381,7 @@ class TumorGrowth(Model):
         """Loads simulation data from file.
 
         Args:
-            timestamp (string): timestamp that the files were originally saved at (see filename you want to upload to find this value)
+            timestamp (string): timestamp that the files were originally saved at (see filename to find this value).
         """
         timestamp = str(timestamp)
         with open(f'save_files/simulation_data_{timestamp}.pickle', 'r') as f:
