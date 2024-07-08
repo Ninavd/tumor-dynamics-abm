@@ -1,6 +1,5 @@
 import numpy as np
 from scipy.optimize import curve_fit
-from tumor.classes.tumor_growth import TumorGrowth
 
 class TumorVisualizationHelper:
     """
@@ -26,7 +25,7 @@ class TumorVisualizationHelper:
         Args:
             model (TumorGrowth): Model to analyze (after completed simulation).
         """
-        self.model: TumorGrowth = model
+        self.model: object = model
 
     def calculate_average_distance(self, edge_mask: np.ndarray, center: tuple[int]) -> float:
         """
