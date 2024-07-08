@@ -5,7 +5,7 @@ Project on ABM tumor growth for the Agent-Based Modeling course at the UvA 2023-
 
 We present an agent-based tumor growth model grounded in the [Mesa](https://mesa.readthedocs.io/en/stable/) framework. Simulations can  be run via the CLI or interactively in the browser. Results are visualized with animations and/or plots and can be saved to csv for further analysis. The model is based on [this paper](https://www.nature.com/articles/srep17992) by Chen et al. and was expanded by adding a Voronoi tesselation to the underlying tissue distribution and performing a global sensitivity analysis.
 
-📄 [API documentation of this repository](https://ninavd.github.io/tumor-dynamics-abm/)
+📄 [API documentation](https://ninavd.github.io/tumor-dynamics-abm/)
 
 ## Installation
 To get started, clone the repository and install the required packages: 
