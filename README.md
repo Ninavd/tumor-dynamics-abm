@@ -101,5 +101,7 @@ Runs one simulation for 1000 iterations on a 100x100 grid, with seed 2, showing 
 │   ├── sensitivity_analysis.py             # Sensitivity analysis
 │   └── sensitivity_analysis_csv_only.py    # Plotting the results of SA
 ├── save_files/                             # Simulation results are stored here
+|    └── ...
 └── videos/                                 # Animations are saved here
+|    └── ...
 ```

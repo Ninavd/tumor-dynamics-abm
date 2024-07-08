@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "O'Shea"
+  given-names: "Tualin"
+- family-names: "van der Meulen"
+  given-names: "Nina"
+- family-names: "Glansdorp"
+  given-names: "Thomas"
+- family-names: "Bouma"
+  given-names: "Kattelijn"
+- family-names: "Piaskowski"
+  given-names: "Victor"
+title: "tumor-dynamics-abm"
+version: 1.0.0
+doi: 10.5281/zenodo.1234
+date-released: 2024-07-08
+url: "https://github.com/Ninavd/tumor-dynamics-abm"
