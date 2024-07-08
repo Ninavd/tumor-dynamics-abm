@@ -21,42 +21,45 @@ class TumorGrowth(Model):
     Snapshots of the healthy tissue and nutrient distribution, cell counts and tumor shapes are saved.
     
     Example usage:
-        model = TumorGrowth() # initialize model with default parameters. 
+        ```
+        model = TumorGrowth()       # initialize model with default parameters.
         results = model.run_model() # run model for 1000 steps. 
+        ```
 
-    Attributes: 
-        scheduler (RandomActivation): Schedules activation of agents.
-        TVH (TumorVisualisationHelper): Calculates properties of the tumor.
-        height, width (int, int): Grid size.
-        center (int): Center of the grid, assuming grid is square.
-        steps (int): Defines maximum number of steps taken in a simulation.
-        seed (int): Defines seed of the simulation.
-        ecm_layer (PropertyLayer): Represents healthy tissue distribution (ECM).
-        nutrient_layer (PropertyLayer): Represents nutrient concentration field.
-        grid (MultiGrid): Discretized grid containing the TumorCell agents. 
-        app, api, bip, bii: Matrix elements in payoff matrix.
-        k (float): Indicates how many nutrients an agent consumes.
-        tau (float): Parameter of reaction-diffusion equation.
+    Attributes:
+
+        scheduler: Schedules activation of agents.
+        TVH: Calculates properties of the tumor.
+        height, width: Grid size.
+        center: Center of the grid, assuming grid is square.
+        steps: Defines maximum number of steps taken in a simulation.
+        seed: Defines seed of the simulation.
+        ecm_layer: Represents healthy tissue distribution (ECM).
+        nutrient_layer: Represents nutrient concentration field.
+        grid: Discretized grid containing the TumorCell agents. 
+        app, api, bip, bii: Elements in payoff matrix.
+        k: Indicates how many nutrients an agent consumes.
+        tau: Parameter of reaction-diffusion equation.
         gamma (float): Inidicates with what factor an agent degrades the ecm.
-        D (float): Diffusion constant.
-        theta_i, theta_p (float, float): Shape parameters.
-        lam (float): parameter in discretized reaction-diffusion equation.
-        phi_c (float): Indicates critical nutrient threshold, below which agents die.
-        distribution (str): Defines ECM distribution. Either \'random\' or \'voronoi\'.
-        N_T (ndarray): Current distribution of living agents, excluding necrotic agents. 
-        Nec (ndarray): Current distribution of necrotic agents.
-        number_births (int): total number of births.
-        number_deaths (int): total number of deaths.
-        ecm_layers (list[ndarray]): Contains snapshots of ECM distribution.
-        nutrient_layers (list[ndarray]): Contains snapshots of nutrient distribution.
-        N_Ts (list[ndarray]): Contains snapshots of spatial living agent distribution.
-        Necs (list[ndarray]): Contains snapshots of spatial necrotic agent distribution. 
-        births (list[int]): Records cumulative number of births.
-        radii (list[float]): Records radius of tumor at the end of simulation.
-        delta_d (int): Time interval to calculate velocity on.
-        proliferating_cells (list[int]): Number of proliferating agents at each iteration.
-        invasive_cells (list[int]): Number of invasive agents at each iteration.
-        necrotic_cells (list[int]): Total number of necrotic agents (deaths).
+        D : Diffusion constant.
+        theta_i, theta_p: Shape parameters.
+        lam: parameter in discretized reaction-diffusion equation.
+        phi_c: Indicates critical nutrient threshold, below which agents die.
+        distribution: Defines ECM distribution. Either \'random\' or \'voronoi\'.
+        N_T: Current distribution of living agents, excluding necrotic agents. 
+        Nec: Current distribution of necrotic agents.
+        number_births: total number of births.
+        number_deaths: total number of deaths.
+        ecm_layers: Contains snapshots of ECM distribution.
+        nutrient_layers: Contains snapshots of nutrient distribution.
+        N_Ts: Contains snapshots of spatial living agent distribution.
+        Necs: Contains snapshots of spatial necrotic agent distribution. 
+        birth: Records cumulative number of births.
+        radii: Records radius of tumor at the end of simulation.
+        delta_d: Time interval to calculate velocity on.
+        proliferating_cells: Number of proliferating agents at each iteration.
+        invasive_cells: Number of invasive agents at each iteration.
+        necrotic_cells: Total number of necrotic agents (deaths).
     """
     def __init__(self, height = 101, width = 101, steps = 1000, delta_d=100,
                 D= 1*10**-4, k = 0.02, gamma = 5*10**-4, phi_c= 0.02,
@@ -80,38 +83,40 @@ class TumorGrowth(Model):
             distribution (str): Defines ECM distribution. Either \'random\' or \'voronoi\'.
         """
         super().__init__(seed=seed)
-        self.scheduler = RandomActivation(self)
-        self.TVH = TVH(self)
+        self.scheduler: RandomActivation = RandomActivation(self)
+        self.TVH: TVH = TVH(self)
 
-        self.height = height
-        self.width = width
-        self.center = int((self.height - 1) /2)
+        self.height: int = height
+        self.width: int = width
+        self.center: int = int((self.height - 1) /2)
 
-        self.steps = steps
-        self.seed = seed
+        self.steps: int = steps
+        self.seed: int = seed
 
-        self.ecm_layer = PropertyLayer("ECM", self.height, self.width, default_value=np.float64(0.0))
-        self.nutrient_layer = PropertyLayer("Nutrients", self.height, self.width, default_value=np.float64(1.0))
-        self.grid = MultiGrid(self.height, self.width, torus=False, property_layers=[self.ecm_layer, self.nutrient_layer])
+        self.ecm_layer: PropertyLayer = PropertyLayer("ECM", self.height, self.width, default_value=np.float64(0.0))
+        self.nutrient_layer: PropertyLayer = PropertyLayer("Nutrients", self.height, self.width, default_value=np.float64(1.0))
+        self.grid: MultiGrid = MultiGrid(self.height, self.width, torus=False, property_layers=[self.ecm_layer, self.nutrient_layer])
 
         # model parameters
-        self.app, self.api = app, api
-        self.bip, self.bii = bip, bii
-        self.k = k
-        self.tau = 1
-        self.gamma = gamma
-        self.D = D
-        self.h = 0.1
-        self.theta_p = theta_p
-        self.theta_i = theta_i
-        self.lam = self.D * self.tau / (self.h**2)
-        self.phi_c = phi_c
+        self.app: float = app
+        self.api: float = api
+        self.bip: float = bip 
+        self.bii: float = bii
+        self.k: float = k
+        self.tau: float = 1
+        self.gamma: float = gamma
+        self.D: float = D
+        self.h: float = 0.1
+        self.theta_p: float = theta_p
+        self.theta_i: float = theta_i
+        self.lam: float = self.D * self.tau / (self.h**2)
+        self.phi_c: float = phi_c
         
         # seed the simulation
         np.random.seed(self.seed)
         
         # initialize ECM field
-        self.distribution = distribution
+        self.distribution: str = distribution
         if distribution == 'uniform':
             self.init_uniform_ECM()
         elif distribution == 'voronoi':
@@ -121,27 +126,28 @@ class TumorGrowth(Model):
         self.init_nutrient_layer()
 
         # keep track of living & necrotic tumor cells
-        self.N_T = np.zeros((self.height, self.width))
-        self.Nec = np.zeros((self.height, self.width))
-        self.number_births = 0
-        self.number_deaths = 0
+        self.N_T: np.ndarray = np.zeros((self.height, self.width))
+        self.Nec: np.ndarray = np.zeros((self.height, self.width))
+        self.number_births: list[int] = 0
+        self.number_deaths: list[int] = 0
 
         # place single proliferative cell in the center
         self.add_agent('proliferating', self.next_id(), (self.center, self.center))
         
         # for recording grid snapshots at every iteration
-        self.ecm_layers = []
-        self.nutrient_layers = []
-        self.N_Ts = []
-        self.Necs = []
-        self.births = []
-        self.radii = []
+        self.ecm_layers: list[np.ndarray] = []
+        self.nutrient_layers: list[np.ndarray] = []
+        self.N_Ts: list[np.ndarray] = []
+        self.Necs: list[np.ndarray] = []
+        self.births: list[int] = []
+        self.radii: list[float] = []
         
-        self.delta_d = delta_d
+        self.delta_d: int = delta_d
 
-        self.proliferating_cells = [1]
-        self.invasive_cells = [0]
-        self.necrotic_cells = [0]
+        # initia cell counts
+        self.proliferating_cells: list[int] = [1]
+        self.invasive_cells: list[int] = [0]
+        self.necrotic_cells: list[int] = [0]
 
         # save initial state
         self.save_iteration_data() 

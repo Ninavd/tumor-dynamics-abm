@@ -2,19 +2,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from tumor.classes.tumor_visualization_helper import TumorVisualizationHelper as TVH
-
+from tumor.classes.tumor_growth import TumorGrowth
 
 class TumorVisualization:
     """
     Visualize final results of tumor growth simulation.
 
     Example usage:
+    ```
         visualize = TumorVisualization(model)
         visualize.plot_all() # to plot final ECM and nutrient distribution and tumor shape.
-    
+    ```
+
     Attributes:
-        model (TumorGrowth): Model to visualize.
-        TVH (TumorVisualizationHelper): Helper class that provides analysis of results.
+        model: Model to visualize.
+        TVH: Helper class that provides analysis of results.
     """
 
     def __init__(self, model):
@@ -24,10 +26,10 @@ class TumorVisualization:
         Args:
             model (TumorGrowth): Model to visualize.
         """
-        self.model = model
-        self.TVH = TVH(model)
+        self.model: TumorGrowth = model
+        self.TVH: TVH = TVH(model)
 
-    def show_ecm(self, position = -1):
+    def show_ecm(self, position: int = -1):
         """
         Plot current ECM density field.
 
@@ -38,7 +40,7 @@ class TumorVisualization:
         im = axs.imshow(self.model.ecm_layers[position])
         return fig, axs
 
-    def show_nutrients(self, position = -1):
+    def show_nutrients(self, position: int = -1):
         """
         Plot current nutrient concentration field.
 
@@ -60,7 +62,7 @@ class TumorVisualization:
         im = axs.imshow(self.model.N_Ts[position])
         return fig, axs
     
-    def plot_necrotic_cells(self, position = -1):
+    def plot_necrotic_cells(self, position: int = -1):
         """
         Plot mask of the tumor, only including necrotic cells.
 
@@ -73,7 +75,7 @@ class TumorVisualization:
         plt.colorbar(im, fraction=0.046, pad=0.04)  #TODO: colorbar keeps getting errors
         return fig, axs
     
-    def plot_tumor_over_time(self, steps):
+    def plot_tumor_over_time(self, steps: int):
         """
         Plot tumor over time.
 
@@ -107,7 +109,7 @@ class TumorVisualization:
         plt.suptitle(f'Tumor Growth Over Time For a {self.model.height}x{self.model.width} Grid')
         plt.show()
 
-    def plot_all(self, position = -1):
+    def plot_all(self, position: int = -1):
         """
         Plot ECM, nutrient field and tumour shape in a single figure.
 

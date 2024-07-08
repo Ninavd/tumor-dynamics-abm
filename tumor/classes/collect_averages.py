@@ -28,9 +28,9 @@ class RunCollection:
             log (bool): if True, stdout and stderr are save in seperate logfiles; 
                         output_log.txt and error_log.txt
         """
-        self.N = N
+        self.N: int = N
         kwargs.pop('seed', None)
-        self.kwargs = kwargs
+        self.kwargs: dict = kwargs
 
         # pipe output to files if log is True
         if log:

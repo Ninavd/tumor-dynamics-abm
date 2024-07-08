@@ -26,10 +26,10 @@ class TumorCell(Agent):
         """
         super().__init__(unique_id, model)
 
-        self.state = state
-        self.next_state = self.state
+        self.state: str = state
+        self.next_state: str = self.state
 
-        self.seed = seed
+        self.seed: int = seed
         np.random.seed(self.seed)
         random.seed(self.seed)
 

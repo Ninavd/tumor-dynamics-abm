@@ -11,7 +11,7 @@ def save_timestamp_metadata(model, timestamp):
     Args:
         model (TumorGrowth): model that was pickled.
         timestamp (str): unique identifier of model, which was saved as 
-                         simulation_data_<timestamp>.pickle.
+                         \'simulation_data_<timestamp>.pickle\'.
     """
     update_metadata()
     metadata = {

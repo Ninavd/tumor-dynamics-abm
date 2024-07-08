@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.optimize import curve_fit
+from tumor.classes.tumor_growth import TumorGrowth
 
 class TumorVisualizationHelper:
     """
@@ -9,11 +10,13 @@ class TumorVisualizationHelper:
     average radius of the tumor or roughness over time.
 
     Example usage:
+    ```
         TVH = TumorVisualizationHelper(model)
         roughness_over_time = TVH.calculate_roughness_progression()
+    ```
     
     Attributes:
-        model (TumorGrowth): Model to analyze (after completed simulation).
+        model: Model to analyze (after completed simulation).
     """
 
     def __init__(self, model):
@@ -23,7 +26,7 @@ class TumorVisualizationHelper:
         Args:
             model (TumorGrowth): Model to analyze (after completed simulation).
         """
-        self.model = model
+        self.model: TumorGrowth = model
 
     def calculate_average_distance(self, edge_mask: np.ndarray, center: tuple[int]) -> float:
         """
