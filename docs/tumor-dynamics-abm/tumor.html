@@ -17,10 +17,20 @@
         <label id="navtoggle" for="togglestate" class="pdoc-button"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke-linecap='round' stroke="currentColor" stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg></label>
         <input id="togglestate" type="checkbox" aria-hidden="true" tabindex="-1">
         <div>
-            <img src="image.png" class="logo" alt="project logo"/>
 
             <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
                    pattern=".+" required>
+
+            <h2>Contents</h2>
+            <ul>
+  <li><a href="#agent-based-tumor-growth">Agent-Based Tumor Growth</a>
+  <ul>
+    <li><a href="#installation">Installation</a></li>
+    <li><a href="#running-an-interactive-simulation">Running an interactive Simulation</a></li>
+    <li><a href="#running-via-the-cli">Running via the CLI</a></li>
+    <li><a href="#repository-structure">Repository structure</a></li>
+  </ul></li>
+</ul>
 
 
             <h2>Submodules</h2>
@@ -45,10 +55,139 @@
                     <h1 class="modulename">
 tumor-dynamics-abm<wbr>.tumor    </h1>
 
-                
-                
-                
-                
+                        <div class="docstring"><h1 id="agent-based-tumor-growth">Agent-Based Tumor Growth</h1>
+
+<p><img src="../../videos/tumor_growth-gif.gif" width="40%"/></p>
+
+<p>Project on ABM tumor growth for the Agent-Based Modeling course at the UvA 2023-2024 (group 15).</p>
+
+<p>We present an agent-based tumor growth model grounded in the <a href="https://mesa.readthedocs.io/en/stable/">Mesa</a> framework. Simulations can  be run via the CLI or interactively in the browser. Results are visualized with animations and/or plots and can be saved to csv for further analysis. The model is based on <a href="https://www.nature.com/articles/srep17992">this paper</a> by Chen et al. and was expanded by adding a Voronoi tesselation to the underlying tissue distribution and performing a global sensitivity analysis.</p>
+
+<h2 id="installation">Installation</h2>
+
+<p>To get started, clone the repository and install the required packages: </p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/Ninavd/tumor-dynamics-abm.git
+<span class="nb">cd</span><span class="w"> </span>tumor-dynamics-abm
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</code></pre>
+</div>
+
+<p>If you want to be able to save animations of your simulation, you might need to install <a href="https://www.ffmpeg.org/download.html">FFmpeg</a>, which can not be installed using <code>pip</code>. It is easiest to install on Linux/WSL or Homebrew via</p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>brew<span class="w"> </span>install<span class="w"> </span>ffmpeg
+</code></pre>
+</div>
+
+<p>or </p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>sudo<span class="w"> </span>apt<span class="w"> </span>install<span class="w"> </span>ffmpeg
+</code></pre>
+</div>
+
+<h2 id="running-an-interactive-simulation">Running an interactive Simulation</h2>
+
+<p>To launch an interactive version of the model, execute <code>mesa runserver</code> or <code>python server.py</code> in the root directory of the project. This opens an interface in your browser, allowing for interactive simulations on a fixed 50x50 grid. Invasive agents are colored red, while proliferating agents are colored green. The size of the squares corresponds to the number of agents in the grid cell. The simulation is stopped when the tumor reaches the border of the grid or when you press 'Stop'.  </p>
+
+<p><img src="../../save_files/image.png" alt="drawing" width="600"/></p>
+
+<p>We recommend increasing the fps slider to at least 10 fps to speed up the visualisation. </p>
+
+<p>Several growth parameters can be adjusted with the sliders on the left hand side:</p>
+
+<ul>
+<li>Proliferation inhibition ($\alpha_{pp}$): Controls to what degree proliferation is favorable, default value is -0.1</li>
+<li>Invasiveness enhancement ($\beta_{ii}$): Controls to what degree invasiveness is favorable, default is 0.1</li>
+<li>Nutrient threshold ($\phi_c$): If the local nutrient concentration drops below this value, all agents at that location will die (become necrotic). Increasing this value may cause the initial cell population to die before significant growth is established. </li>
+<li>ECM degradation speed ($\gamma$): How fast the tumor cells degrade healthy tissue. You will find that increasing this value will significantly impact radial growth speed of the tumor. This fact was solidified by our sensitivity analysis, which indicated that $\gamma$ had the <a href="save_files/SA_analysis_128_distinct_samples_uniform/128_distinct_samples_uniformST_S1_tumor_diameter_steps_1000_grid_101_params_varied_10.png">highest impact on the growth velocity</a>.</li>
+<li>Distribution of the ECM: Density field of healthy tissue, can choose between a random distribution or a Voronoi tessellation.</li>
+</ul>
+
+<p>More information on these parameters can be found in the <a href="https://www.nature.com/articles/srep17992">original paper by Chen et al.</a> or can be read in our report on request. </p>
+
+<h2 id="running-via-the-cli">Running via the CLI</h2>
+
+<pre><code>usage: main.py [-h] [-n N] [-s SEED] [-api ALPHA_PI] [-app ALPHA_PP] [-bii BETA_II] [-bip BETA_IP] [--voronoi] [--summary] [--save]
+               [--show_plot] [--animate]
+               n_steps L_grid
+
+Simulate agent-based tumor growth and save results
+
+positional arguments:
+  n_steps               max number of time steps used in simulation
+  L_grid                Width of grid in number of cells
+
+options:
+  -h, --help            show this help message and exit
+  -n N                  How many simulations to run. If &gt; 1, averaged results are saved
+                        to csv. Default is 1.
+  -s SEED               Seed of simulation (default is random)
+
+  -api ALPHA_PI         proliferative probability change when 
+                        encountering an invasive cell (default is -0.02).      
+
+  -app ALPHA_PP         proliferative probability change when 
+                        encountering an proliferative cell (default is -0.1).
+
+  -bii BETA_II          invasive probability change when encountering 
+                        an invasive cell (default is 0.1). 
+
+  -bip BETA_IP          invasive probability change when encountering an
+                        proliferative cell (default is 0.02).   
+
+  --voronoi             Initialize ECM grid as voronoi diagram instead of
+                        random.
+  --summary             print summary of simulation results.
+  --save                store simulation object in pickle file.
+  --show_plot           show plots of final tumor and other parameters.
+  --animate             save animation video of simulated tumor growth.
+</code></pre>
+
+<p><strong>example</strong></p>
+
+<div class="pdoc-code codehilite">
+<pre><span></span><code>python<span class="w"> </span>main.py<span class="w"> </span><span class="m">1000</span><span class="w"> </span><span class="m">100</span><span class="w"> </span>-s<span class="w"> </span><span class="m">2</span><span class="w"> </span>--show_plot<span class="w"> </span>--summary
+</code></pre>
+</div>
+
+<p>Runs one simulation for 1000 iterations on a 100x100 grid, with seed 2, showing plots of the tumor and other statistics once the simulation is finished and printing a summary.</p>
+
+<h2 id="repository-structure">Repository structure</h2>
+
+<pre><code>├── main.py     # CLI implementation
+├── server.py   # Running an interactive simulation
+├── tumor/
+│   ├── __init__.py
+│   ├── classes/
+│   │   ├── __init__.py
+│   │   ├── collect_averages.py             # Class for averaging over multiple runs
+│   │   ├── tumor_cell.py                   # Agent class
+│   │   ├── tumor_growth.py                 # Model class
+│   │   ├── tumor_visualization_helper.py   # Class for calculating several statistics
+│   │   └── tumor_visualizations.py         # Class for plotting visualizations and statistics
+│   ├── helpers.py                          # Helper functions
+│   ├── sensitivity_analysis.py             # Sensitivity analysis
+│   └── sensitivity_analysis_csv_only.py    # Plotting the results of SA
+├── save_files/                             # Simulation results are stored here
+|    └── ...
+└── videos/                                 # Animations are saved here
+|    └── ...
+</code></pre>
+</div>
+
+                        <input id="mod-tumor-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+
+                        <label class="view-source-button" for="mod-tumor-view-source"><span>View Source</span></label>
+
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos">1</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">2</span></a><span class="sd">.. include:: ../README.md</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">3</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span></pre></div>
+
+
             </section>
     </main>
 <script>
