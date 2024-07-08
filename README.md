@@ -24,7 +24,7 @@ sudo apt install ffmpeg
 ```
 
 ## Running an interactive Simulation
-To launch an interactive version of the model, execute `mesa runserver` or `python server.py` in the root directory of the project. This opens an interface in your browser, allowing for interactive simulations on a fixed 50x50 grid. Invasive agents are colored red, while proliferating agents are colored green. The size of the squares corresponds to the number of agents in the grid cell. 
+To launch an interactive version of the model, execute `mesa runserver` or `python server.py` in the root directory of the project. This opens an interface in your browser, allowing for interactive simulations on a fixed 50x50 grid. Invasive agents are colored red, while proliferating agents are colored green. The size of the squares corresponds to the number of agents in the grid cell. The simulation is stopped when the tumor reaches the border of the grid or when you press 'Stop'.  
 
 <img src="save_files/image.png" alt="drawing" width="600"/>
 
@@ -42,7 +42,7 @@ More information on these parameters can be found in the [original paper by Chen
 
 ## Running via the CLI
 ```
-usage: main.py [-h] [-s SEED] [-api ALPHA_PI] [-app ALPHA_PP] [-bii BETA_II] [-bip BETA_IP] [--voronoi] [--summary] [--save]
+usage: main.py [-h] [-n N] [-s SEED] [-api ALPHA_PI] [-app ALPHA_PP] [-bii BETA_II] [-bip BETA_IP] [--voronoi] [--summary] [--save]
                [--show_plot] [--animate]
                n_steps L_grid
 
